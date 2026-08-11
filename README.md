@@ -1,64 +1,116 @@
 # じぶんページ工房
 
-小学生くらいの子どもが、個人情報に気をつけながら自己紹介ページを作れる、登録不要・通信不要の静的Webアプリです。
+**技術で「自分のページ」を作る。形にする仕事を体感する。**
 
-![Static site](https://img.shields.io/badge/app-static_site-2f7d52)
-![No tracking](https://img.shields.io/badge/privacy-no_tracking-2878b5)
-![License](https://img.shields.io/badge/license-MIT-e15b3d)
+HTML・CSS・JavaScriptを、コード暗記ではなく「中身を作る → 見た目を作る → 動きを作る」の3ステップとして体験するLAN向けWebワークショップです。
 
-## 特徴
+## 2つのモード
 
-- 4ステップの編集と常時ライブプレビュー
-- ニックネーム前提の入力設計
-- イラストアバター / 端末内で圧縮する写真アップロード
-- 好きなもの、得意なこと、夢中なこと、今後やりたいこと
-- 4テーマ、アクセントカラー、2レイアウト
-- localStorageへの自動保存
-- 下書きJSONの保存・再読み込み
-- 1ファイルで動く完成HTMLのダウンロード
-- メール、電話、学校名、住所、SNS、年齢、顔写真の簡易チェック
-- 外部フォント、解析、広告、バックエンド、Cookieなし
-- キーボード操作、フォーカス表示、十分なボタンサイズ、`prefers-reduced-motion` 対応
+### こどもモード（3〜7歳程度）
 
-## 使い方
+自己紹介サイトを3ステップで作ります。キーボード操作は不要です。
 
-`index.html` をブラウザで開くだけで動きます。ローカルサーバーを使う場合は、プロジェクト直下で次を実行してください。
+1. **HTML / なかみ** — マーク、名前、好きなもの、ひとことを決める
+2. **CSS / みため** — 色、並べ方、飾りを決める
+3. **JavaScript / うごき** — 登場アニメーションとクリック時の反応を決める
 
-```bash
-python3 -m http.server 8000
+主な機能：
+
+- 画面下部のひらがなパッド（名前・ひとこと入力）
+- 大きな絵・ボタン中心のタップ操作
+- 説明のブラウザ読み上げ（対応ブラウザのみ）
+- 常時ライブプレビュー
+- 完成した自己紹介ページのHTML保存
+- 完成ページを簡易カードPNGへ変換
+- カードPNGをLAN内QRコードからスマホへ渡して保存
+
+### チャレンジモード（小学校高学年〜大人）
+
+お題に合うサイトを3ステップで設計します。
+
+1. **HTML / 情報設計** — タイトル、価値、説明、可変セクション、CTA
+2. **CSS / 視覚設計** — テーマ、レイアウト、色、書体、余白、画像
+3. **JavaScript / 体験設計** — 表示アニメーション、CTAの反応
+
+お題：カフェ、週末イベント、文房具、ポートフォリオ。
+
+難易度は EASY / NORMAL / HARD。HTML 40点、CSS 35点、JavaScript 25点の計100点で、次に直すポイントも表示します。採点は「見た目の好み」ではなく、入力内容・必要セクション数・カスタマイズ・操作設定など明示的な条件で行います。
+
+## 起動
+
+Python 3.10+ を推奨します。外部パッケージのインストールは不要です（QRコード生成ライブラリを同梱）。
+
+### Windows
+
+```bat
+start-local.bat
 ```
 
-ブラウザで `http://localhost:8000` を開きます。
+### macOS / Linux
 
-## 公開
+```sh
+./start-local.command
+```
 
-`.github/workflows/pages.yml` を同梱しています。GitHub Pagesの公開元を **GitHub Actions** に設定すると、`main` へのpushで公開されます。
+または共通で：
 
-## プライバシー設計
+```sh
+python3 server.py
+```
 
-このアプリは入力データをサーバーへ送信しません。下書きは利用中のブラウザ内に保存され、完成HTMLと下書きJSONは端末へ直接ダウンロードされます。
+起動後：
 
-ただし、生成したHTMLをインターネットへ公開する行為は別です。公開前に必ず保護者・先生が内容を確認してください。簡易チェックは見落としを防げないため、法的・安全上の保証ではありません。
+- このPC: `http://localhost:4173`
+- 同じLANの端末: 起動時に表示される `http://<LAN-IP>:4173`
 
-## デザイン方針
+## LAN / QR機能
 
-「AIが作ったようなサイト」に見えやすい、紫系グラデーション、ガラス風カード、過剰な丸角、均一なカード反復、意味の薄い装飾文句を避けました。代わりに、紙、鉛筆、付せん、判子のような不均一さを使い、子どもの工作物に近い見た目にしています。
+サーバーはクラウドへアップロードしません。転送データはPythonプロセスのメモリ内だけに一時保持します。
 
-詳しい調査メモは [`RESEARCH.md`](./RESEARCH.md) を参照してください。
+- スマホ写真: 約20分
+- 完成HTML: 約30分
+- こども版作品カードPNG: 約30分
+
+期限切れまたはサーバー終了で消えます。
+
+QR機能は家庭・教室など**管理された同一LAN内だけ**で使ってください。ルーターのポート開放やインターネットへの直接公開は想定していません。
 
 ## ファイル構成
 
 ```text
-.
-├── index.html
-├── styles.css
-├── app.js
-├── RESEARCH.md
-├── SECURITY.md
-├── LICENSE
-└── .github/workflows/pages.yml
+index.html       共通Main / モード選択
+main.css
+child.html       こどもモード
+child.css
+child.js
+adult.html       チャレンジモード
+adult.css
+adult.js
+server.py        LANサーバー / QR / 一時転送
+scripts/
+  check_static.py
+  test_server.py
+vendor_py/qrcode/
 ```
 
-## ライセンス
+`app.js` と `styles.css` は前バージョンの実装を移行参照用として残しています。新しいMain画面からは読み込まれません。
 
-MIT License
+## チェック
+
+```sh
+python3 scripts/check_static.py
+python3 scripts/test_server.py
+node --check child.js
+node --check adult.js
+python3 -m py_compile server.py
+```
+
+`test_server.py` は、静的ページ配信、QR SVG、スマホ写真転送、HTML一時共有、PNGカード一時共有をローカルHTTPサーバーで統合テストします。
+
+## オフライン動作
+
+Main / こども / 大人の編集画面は外部CDNやWebフォントを読み込みません。QR転送以外は静的ファイルだけでも利用できます。QR転送には `server.py` が必要です。
+
+## License
+
+MIT

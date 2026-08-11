@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#2e5f75">
+  <title>チャレンジモード｜じぶんページ工房</title>
+  <link rel="stylesheet" href="adult.css">
+  <script src="adult.js" defer></script>
+</head>
+<body>
+  <header class="adult-header">
+    <a href="index.html" class="adult-brand"><span>{ }</span><div><small>WEB WORKSHOP</small><strong>じぶんページ工房</strong></div></a>
+    <div class="header-middle"><b>CHALLENGE MODE</b><span>お題に合うサイトを3ステップで設計</span></div>
+    <button id="adultHelp" type="button">採点ルール</button>
+  </header>
+
+  <main class="adult-shell">
+    <aside class="challenge-sidebar">
+      <div class="challenge-head"><p>BRIEF</p><h1>今回のお題</h1></div>
+      <div class="brief-selects">
+        <label>お題<select id="challengeSelect"><option value="cafe">小さなカフェの紹介</option><option value="event">週末イベントの告知</option><option value="product">新しい文房具の紹介</option><option value="portfolio">クリエイター作品紹介</option></select></label>
+        <label>難易度<select id="difficultySelect"><option value="easy">EASY</option><option value="normal" selected>NORMAL</option><option value="hard">HARD</option></select></label>
+      </div>
+      <article class="brief-card" id="briefCard"></article>
+      <div class="score-card">
+        <div class="score-ring"><strong id="totalScore">0</strong><span>/100</span></div>
+        <div><p>LIVE SCORE</p><strong id="scoreLabel">制作中</strong></div>
+      </div>
+      <div class="score-breakdown">
+        <div><span>HTML</span><meter id="htmlMeter" min="0" max="40" value="0"></meter><b id="htmlScore">0/40</b></div>
+        <div><span>CSS</span><meter id="cssMeter" min="0" max="35" value="0"></meter><b id="cssScore">0/35</b></div>
+        <div><span>JS</span><meter id="jsMeter" min="0" max="25" value="0"></meter><b id="jsScore">0/25</b></div>
+      </div>
+      <ul class="score-tips" id="scoreTips"></ul>
+    </aside>
+
+    <section class="adult-editor">
+      <nav class="adult-steps" aria-label="制作ステップ">
+        <button class="active" type="button" data-step="0"><b>01</b><span><strong>HTML</strong><small>情報を設計する</small></span></button>
+        <button type="button" data-step="1"><b>02</b><span><strong>CSS</strong><small>見た目を設計する</small></span></button>
+        <button type="button" data-step="2"><b>03</b><span><strong>JavaScript</strong><small>体験を設計する</small></span></button>
+      </nav>
+
+      <section class="adult-panel" data-panel="0">
+        <div class="panel-heading"><p>STEP 01 / HTML</p><h2>何を、どんな順番で伝える？</h2><span>HTMLはページの「意味と構造」。まずは情報の優先順位を決めます。</span></div>
+        <div class="field-grid">
+          <label class="full"><span>サイト名 / メインタイトル <b>必須</b></span><input id="siteTitle" maxlength="42" placeholder="例：喫茶 余白"></label>
+          <label class="full"><span>ひとことで伝える価値 <b>必須</b></span><input id="siteLead" maxlength="90" placeholder="例：静かな午後と、深煎りコーヒー。"></label>
+          <label class="full"><span>紹介文</span><textarea id="siteIntro" rows="4" maxlength="240" placeholder="このサイトで伝えたいことを2〜4文で。"></textarea></label>
+        </div>
+        <div class="section-builder-head"><div><h3>コンテンツセクション</h3><p>見出し＋本文を追加できます。</p></div><button type="button" id="addAdultSection">＋ セクション追加</button></div>
+        <div id="adultSections" class="adult-sections"></div>
+        <div class="cta-block">
+          <h3>行動してもらうボタン</h3>
+          <div class="field-grid two"><label><span>ボタンの文字</span><input id="ctaLabel" maxlength="24" placeholder="例：メニューを見る"></label><label><span>押した後のメッセージ</span><input id="ctaMessage" maxlength="80" placeholder="例：今日のおすすめはプリンです。"></label></div>
+        </div>
+        <div class="panel-nav"><span></span><button type="button" class="primary next" data-next="1">CSSへ →</button></div>
+      </section>
+
+      <section class="adult-panel" data-panel="1" hidden>
+        <div class="panel-heading"><p>STEP 02 / CSS</p><h2>印象を設計する。</h2><span>色だけではなく、レイアウト・文字・余白・質感まで変えて個性を作ります。</span></div>
+        <fieldset><legend>デザイン方向</legend><div class="visual-options themes" id="adultThemes">
+          <button type="button" class="selected" data-theme="editorial"><i class="editorial"></i><span><strong>Editorial</strong><small>雑誌・読み物</small></span></button>
+          <button type="button" data-theme="bold"><i class="bold"></i><span><strong>Bold</strong><small>強い訴求</small></span></button>
+          <button type="button" data-theme="soft"><i class="soft"></i><span><strong>Soft</strong><small>やわらかい空気</small></span></button>
+          <button type="button" data-theme="technical"><i class="technical"></i><span><strong>Technical</strong><small>情報・プロダクト</small></span></button>
+        </div></fieldset>
+        <fieldset><legend>レイアウト</legend><div class="visual-options layouts" id="adultLayouts">
+          <button type="button" class="selected" data-layout="split"><i class="split"></i><span><strong>Split</strong><small>左右に大胆に分割</small></span></button>
+          <button type="button" data-layout="stack"><i class="stack"></i><span><strong>Stack</strong><small>縦のリズム</small></span></button>
+          <button type="button" data-layout="grid"><i class="grid"></i><span><strong>Grid</strong><small>カードで整理</small></span></button>
+        </div></fieldset>
+        <div class="design-controls">
+          <label><span>アクセントカラー</span><input type="color" id="adultAccent" value="#c95b3e"></label>
+          <label><span>文字の雰囲気</span><select id="fontMood"><option value="gothic">ゴシック</option><option value="serif">明朝</option><option value="mono">モノスペース</option></select></label>
+          <label><span>余白</span><select id="spacing"><option value="compact">コンパクト</option><option value="normal" selected>ふつう</option><option value="air">ゆったり</option></select></label>
+        </div>
+        <fieldset><legend>キービジュアル</legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>IMAGE</span></div><div><label class="file-button" for="adultPhotoInput">画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="removeAdultPhoto">画像を外す</button><p>画像なしでも完成できます。LANモードではスマホから一時転送できます。</p></div></div></fieldset>
+        <div class="panel-nav"><button type="button" class="secondary back" data-back="0">← HTML</button><button type="button" class="primary next" data-next="2">JavaScriptへ →</button></div>
+      </section>
+
+      <section class="adult-panel" data-panel="2" hidden>
+        <div class="panel-heading"><p>STEP 03 / JAVASCRIPT</p><h2>押したくなる理由を作る。</h2><span>動けば高得点ではありません。お題と目的に合うインタラクションを選びます。</span></div>
+        <fieldset><legend>ページ表示の動き</legend><div class="interaction-options" id="entryMotion">
+          <button class="selected" type="button" data-entry="fade"><b>FADE</b><span>静かに表示</span></button>
+          <button type="button" data-entry="slide"><b>SLIDE</b><span>下から表示</span></button>
+          <button type="button" data-entry="stagger"><b>STAGGER</b><span>順番に表示</span></button>
+          <button type="button" data-entry="none"><b>NONE</b><span>動かさない</span></button>
+        </div></fieldset>
+        <fieldset><legend>ボタンを押した時</legend><div class="interaction-options" id="buttonAction">
+          <button class="selected" type="button" data-action="message"><b>MESSAGE</b><span>メッセージを出す</span></button>
+          <button type="button" data-action="theme"><b>THEME</b><span>配色を切り替える</span></button>
+          <button type="button" data-action="highlight"><b>FOCUS</b><span>大事な部分を強調</span></button>
+          <button type="button" data-action="none"><b>NONE</b><span>何もしない</span></button>
+        </div></fieldset>
+        <div class="completion-row"><div><p>FINAL CHECK</p><h3>プレビューを操作してから採点しよう。</h3><span>点数の下に「次に直すところ」が表示されます。</span></div><button type="button" id="revealScore">採点結果を見る</button></div>
+        <div class="export-row"><button type="button" id="adultDownload">HTMLを保存</button><button type="button" id="adultShare">QRでスマホへ送る</button></div>
+        <div class="panel-nav"><button type="button" class="secondary back" data-back="1">← CSS</button><span></span></div>
+      </section>
+    </section>
+
+    <aside class="adult-preview-column">
+      <div class="preview-heading"><div><p>LIVE PREVIEW</p><h2>完成イメージ</h2></div><div class="device-buttons"><button class="active" type="button" data-device="desktop">PC</button><button type="button" data-device="mobile">SP</button></div></div>
+      <div class="adult-browser desktop" id="adultBrowser"><div class="browser-bar"><span></span><span></span><span></span><b>challenge-site.html</b></div><iframe id="adultPreview" title="制作中のサイト" sandbox="allow-scripts"></iframe></div>
+    </aside>
+  </main>
+
+  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING</p><h2>採点の考え方</h2><div class="rubric"><div><b>HTML / 40</b><p>お題に必要な情報があり、見出し・本文・CTAの構造が作れているか。</p></div><div><b>CSS / 35</b><p>テーマ・レイアウト・文字・余白を目的に合わせて選び、初期状態から設計できているか。</p></div><div><b>JavaScript / 25</b><p>CTAと操作結果がつながり、適切な動き・反応を設定できているか。</p></div></div><p>難易度を上げると、必要なセクション数やカスタマイズ項目が増えます。</p></div></dialog>
+  <dialog id="adultQrDialog"><div class="dialog-paper qr-dialog"><button type="button" class="dialog-close" data-close="adultQrDialog">×</button><p class="dialog-kicker">SAME WI-FI</p><h2 id="adultQrTitle">スマホとつなぐ</h2><div id="adultQrBox" class="adult-qr-box">QRを準備しています…</div><p id="adultQrStatus"></p><a id="adultQrLink" href="#" target="_blank" rel="noopener" hidden>リンクを開く</a></div></dialog>
+  <div id="adultToast" class="adult-toast" role="status" aria-live="polite"></div>
+</body>
+</html>

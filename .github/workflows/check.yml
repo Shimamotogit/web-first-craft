@@ -14,6 +14,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Check JavaScript syntax
-        run: node --check app.js
+        run: |
+          node --check child.js
+          node --check adult.js
       - name: Check static structure and privacy boundaries
         run: python3 scripts/check_static.py
+      - name: Check Python syntax
+        run: python3 -m py_compile server.py scripts/test_server.py
+      - name: Test LAN transfer server
+        run: python3 scripts/test_server.py

@@ -1,17 +1,36 @@
-# Security and privacy
+# セキュリティと運用
 
-## Data handling
+このプロジェクトは、家庭・学校・ワークショップ会場などの**管理されたLAN**での利用を想定しています。
 
-- No backend or analytics.
-- No network requests are made by the application.
-- Drafts are stored only in browser `localStorage`.
-- Uploaded images are resized in the browser and retained as a local data URL.
-- Exported profile pages contain no JavaScript and no external resources.
+## 基本方針
 
-## Child safety scope
+- 外部クラウドへの送信機能はありません。
+- 入力内容は各ブラウザの `localStorage` に保存されます。
+- QRコードは外部QRサービスではなくローカルサーバーで生成します。
+- スマホ写真、完成HTML、作品カードPNGはサーバーメモリ内の一時データです。
+- 写真約20分、HTML/カード約30分で期限切れになります。
+- Pythonサーバーを終了すると一時データは失われます。
 
-The privacy scanner is a convenience feature, not a guarantee. It can miss names, landmarks, routines, uniforms, reflections, image metadata already rendered into pixels, and indirect identifying information. A parent, guardian, or teacher should review every page before public sharing.
+## こどもモード
 
-## Reporting a vulnerability
+3〜7歳程度を想定しているため、基本プロフィールは本名・学校名・住所などを要求せず、マーク、呼び名、好きなもの、短い言葉に限定しています。作品カードを外部へ投稿する前には、大人が内容を確認してください。
 
-Please open a GitHub issue without including real child data, screenshots containing faces, contact details, or unpublished profile pages. Use synthetic test data only.
+## LAN機能を使う場所
+
+使ってよい例：
+
+- 自宅のWi-Fi
+- 学校・教室で参加者が管理されているネットワーク
+- ワークショップ専用LAN
+
+避ける例：
+
+- 不特定多数が参加するフリーWi-Fi
+- ポート開放してインターネットから到達できる状態
+- サーバーPCを公共ネットワークへ直接接続した状態
+
+このサーバーは一般公開Webサーバーではありません。
+
+## QR共有
+
+QRは推測しにくいランダムトークンを含む一時URLです。ただし、QR画像やURLを見た同一LAN内の人は、期限内であればデータへアクセスできます。QRを掲示しっぱなしにしないでください。
