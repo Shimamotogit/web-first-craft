@@ -56,6 +56,14 @@ def main() -> None:
     adult=(ROOT/"adult.js").read_text(encoding="utf-8")
     if "buildKidHtml" not in child or "drawCard" not in child or "/api/cards" not in child:
         fail("child mode core build/card functions are missing")
+    child_html=(ROOT/"child.html").read_text(encoding="utf-8")
+    for marker in ("kidPhonePhotoButton", "toggleKanaButton", "kidFrames", "kidStickers", "kidPatterns"):
+        if f'id="{marker}"' not in child_html:
+            fail(f"child mode UI is missing {marker}")
+    if child.count("buildKidSvg()") < 4:
+        fail("child preview/export paths must share buildKidSvg()")
+    if "data-motion=" in child_html or "data-magic=" in child_html:
+        fail("child final-card workflow must not expose animation choices")
     if "buildHtml" not in adult or "function score" not in adult or "/api/shares" not in adult:
         fail("adult mode core build/score/share functions are missing")
     print(f"OK: 3 pages, {total_ids} unique ids, local-only assets/endpoints, child card + adult scoring present")
