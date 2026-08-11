@@ -57,15 +57,26 @@ def main() -> None:
     if "buildKidHtml" not in child or "drawCard" not in child or "/api/cards" not in child:
         fail("child mode core build/card functions are missing")
     child_html=(ROOT/"child.html").read_text(encoding="utf-8")
-    for marker in ("kidPhonePhotoButton", "toggleKanaButton", "kidFrames", "kidStickers", "kidPatterns"):
+    for marker in ("kidPhonePhotoButton", "toggleKanaButton", "kidFrames", "kidStickers", "kidPatterns", "inputMethodButtons"):
         if f'id="{marker}"' not in child_html:
             fail(f"child mode UI is missing {marker}")
+    if 'data-layout="storybook"' not in child_html or 'data-layout="cards"' in child_html:
+        fail("child mode must use the balanced storybook layout instead of cards")
+    if 'data-input-mode="pc"' not in child_html or 'data-input-mode="kana"' not in child_html:
+        fail("child mode must support both kana-pad and PC keyboard input")
     if child.count("buildKidSvg()") < 4:
         fail("child preview/export paths must share buildKidSvg()")
     if "data-motion=" in child_html or "data-magic=" in child_html:
         fail("child final-card workflow must not expose animation choices")
     if "buildHtml" not in adult or "function score" not in adult or "/api/shares" not in adult:
         fail("adult mode core build/score/share functions are missing")
-    print(f"OK: 3 pages, {total_ids} unique ids, local-only assets/endpoints, child card + adult scoring present")
+    adult_html=(ROOT/"adult.html").read_text(encoding="utf-8")
+    for marker in ("pageWidth", "headingSize", "backgroundR", "backgroundG", "backgroundB", "jsReveal", "jsRoulette", "jsPhotoZoom"):
+        if f'id="{marker}"' not in adult_html:
+            fail(f"adult custom lab is missing {marker}")
+    for legacy in ("静かな時間", "順番に表示", "STAGGER", "お題", "難易度"):
+        if legacy in adult_html:
+            fail(f"adult mode still contains legacy challenge UI: {legacy}")
+    print(f"OK: 3 pages, {total_ids} unique ids, child kana/PC input + static card, adult px/RGB lab + scoring present")
 
 if __name__ == "__main__": main()

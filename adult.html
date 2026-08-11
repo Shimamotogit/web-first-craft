@@ -3,98 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#2e5f75">
-  <title>チャレンジモード｜じぶんページ工房</title>
+  <meta name="theme-color" content="#203b52">
+  <title>カスタムモード｜じぶんページ工房</title>
   <link rel="stylesheet" href="adult.css">
   <script src="adult.js" defer></script>
 </head>
 <body>
   <header class="adult-header">
     <a href="index.html" class="adult-brand"><span>{ }</span><div><small>WEB WORKSHOP</small><strong>じぶんページ工房</strong></div></a>
-    <div class="header-middle"><b>CHALLENGE MODE</b><span>お題に合うサイトを3ステップで設計</span></div>
+    <div class="header-middle"><b>CUSTOM MODE</b><span>数字を変えて、CSSの意味を体感する</span></div>
     <button id="adultHelp" type="button">採点ルール</button>
   </header>
 
   <main class="adult-shell">
-    <aside class="challenge-sidebar">
-      <div class="challenge-head"><p>BRIEF</p><h1>今回のお題</h1></div>
-      <div class="brief-selects">
-        <label>お題<select id="challengeSelect"><option value="cafe">小さなカフェの紹介</option><option value="event">週末イベントの告知</option><option value="product">新しい文房具の紹介</option><option value="portfolio">クリエイター作品紹介</option></select></label>
-        <label>難易度<select id="difficultySelect"><option value="easy">EASY</option><option value="normal" selected>NORMAL</option><option value="hard">HARD</option></select></label>
-      </div>
-      <article class="brief-card" id="briefCard"></article>
-      <div class="score-card">
-        <div class="score-ring"><strong id="totalScore">0</strong><span>/100</span></div>
-        <div><p>LIVE SCORE</p><strong id="scoreLabel">制作中</strong></div>
-      </div>
+    <aside class="score-sidebar">
+      <div class="mode-intro"><p>CUSTOM PROFILE</p><h1>自己紹介サイトを<br>自分で調整する。</h1><span>HTMLで内容、CSSで数値、JavaScriptで機能を作ります。</span></div>
+      <div class="score-card"><div class="score-ring"><strong id="totalScore">0</strong><span>/100</span></div><div><p>LIVE SCORE</p><strong id="scoreLabel">制作中</strong></div></div>
       <div class="score-breakdown">
-        <div><span>HTML</span><meter id="htmlMeter" min="0" max="40" value="0"></meter><b id="htmlScore">0/40</b></div>
-        <div><span>CSS</span><meter id="cssMeter" min="0" max="35" value="0"></meter><b id="cssScore">0/35</b></div>
-        <div><span>JS</span><meter id="jsMeter" min="0" max="25" value="0"></meter><b id="jsScore">0/25</b></div>
+        <div><span>HTML</span><meter id="htmlMeter" min="0" max="35" value="0"></meter><b id="htmlScore">0/35</b></div>
+        <div><span>CSS</span><meter id="cssMeter" min="0" max="45" value="0"></meter><b id="cssScore">0/45</b></div>
+        <div><span>JS</span><meter id="jsMeter" min="0" max="20" value="0"></meter><b id="jsScore">0/20</b></div>
       </div>
-      <ul class="score-tips" id="scoreTips"></ul>
+      <div class="score-guide"><strong>次にやること</strong><ul id="scoreTips"></ul></div>
     </aside>
 
     <section class="adult-editor">
       <nav class="adult-steps" aria-label="制作ステップ">
-        <button class="active" type="button" data-step="0"><b>01</b><span><strong>HTML</strong><small>情報を設計する</small></span></button>
-        <button type="button" data-step="1"><b>02</b><span><strong>CSS</strong><small>見た目を設計する</small></span></button>
-        <button type="button" data-step="2"><b>03</b><span><strong>JavaScript</strong><small>体験を設計する</small></span></button>
+        <button class="active" type="button" data-step="0"><b>01</b><span><strong>HTML</strong><small>自己紹介の中身</small></span></button>
+        <button type="button" data-step="1"><b>02</b><span><strong>CSS</strong><small>px・RGBを調整</small></span></button>
+        <button type="button" data-step="2"><b>03</b><span><strong>JavaScript</strong><small>機能を追加</small></span></button>
       </nav>
 
       <section class="adult-panel" data-panel="0">
-        <div class="panel-heading"><p>STEP 01 / HTML</p><h2>何を、どんな順番で伝える？</h2><span>HTMLはページの「意味と構造」。まずは情報の優先順位を決めます。</span></div>
+        <div class="panel-heading"><p>STEP 01 / HTML</p><h2>まずは、自分の情報を入れる。</h2><span>HTMLは「何が書いてあるページなのか」を決める部分です。</span></div>
         <div class="field-grid">
-          <label class="full"><span>サイト名 / メインタイトル <b>必須</b></span><input id="siteTitle" maxlength="42" placeholder="例：喫茶 余白"></label>
-          <label class="full"><span>ひとことで伝える価値 <b>必須</b></span><input id="siteLead" maxlength="90" placeholder="例：静かな午後と、深煎りコーヒー。"></label>
-          <label class="full"><span>紹介文</span><textarea id="siteIntro" rows="4" maxlength="240" placeholder="このサイトで伝えたいことを2〜4文で。"></textarea></label>
+          <label><span>名前 / ニックネーム <b>+7</b></span><input id="profileName" maxlength="30" placeholder="例：HARU"></label>
+          <label><span>肩書き・ひとこと <b>+5</b></span><input id="profileTagline" maxlength="52" placeholder="例：ゲームとWebが好きな中学生"></label>
+          <label class="full"><span>自己紹介 <b>+7</b></span><textarea id="profileIntro" rows="5" maxlength="260" placeholder="好きなこと、最近やっていることなどを書いてみよう。"></textarea></label>
         </div>
-        <div class="section-builder-head"><div><h3>コンテンツセクション</h3><p>見出し＋本文を追加できます。</p></div><button type="button" id="addAdultSection">＋ セクション追加</button></div>
-        <div id="adultSections" class="adult-sections"></div>
-        <div class="cta-block">
-          <h3>行動してもらうボタン</h3>
-          <div class="field-grid two"><label><span>ボタンの文字</span><input id="ctaLabel" maxlength="24" placeholder="例：メニューを見る"></label><label><span>押した後のメッセージ</span><input id="ctaMessage" maxlength="80" placeholder="例：今日のおすすめはプリンです。"></label></div>
+
+        <div class="profile-subsection">
+          <div class="subsection-head"><div><h3>好きなもの</h3><p>3つ入れるとHTML得点が上がります。</p></div><span>各 +2</span></div>
+          <div class="favorite-inputs"><input id="favorite1" maxlength="24" placeholder="例：ゲーム"><input id="favorite2" maxlength="24" placeholder="例：音楽"><input id="favorite3" maxlength="24" placeholder="例：ラーメン"></div>
         </div>
-        <div class="panel-nav"><span></span><button type="button" class="primary next" data-next="1">CSSへ →</button></div>
+
+        <div class="profile-subsection">
+          <div class="subsection-head"><div><h3>「もっと見る」に入れる内容</h3><p>JavaScriptで表示・非表示を切り替える材料になります。</p></div><span>+5</span></div>
+          <div class="field-grid"><label><span>見出し</span><input id="extraTitle" maxlength="32" placeholder="例：最近つくっているもの"></label><label><span>短い説明</span><input id="extraText" maxlength="100" placeholder="例：JavaScriptでミニゲームを作っています。"></label></div>
+        </div>
+
+        <fieldset class="photo-field"><legend>プロフィール写真 <b>+5</b></legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>PHOTO</span></div><div><label class="file-button" for="adultPhotoInput">このPCから画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="removeAdultPhoto">画像を外す</button><p>LANモードなら、同じWi-Fiのスマホから写真を送れます。</p></div></div></fieldset>
+        <div class="panel-nav"><span></span><button type="button" class="primary next" data-next="1">CSS LABへ →</button></div>
       </section>
 
       <section class="adult-panel" data-panel="1" hidden>
-        <div class="panel-heading"><p>STEP 02 / CSS</p><h2>印象を設計する。</h2><span>色だけではなく、レイアウト・文字・余白・質感まで変えて個性を作ります。</span></div>
-        <fieldset><legend>デザイン方向</legend><div class="visual-options themes" id="adultThemes">
-          <button type="button" class="selected" data-theme="editorial"><i class="editorial"></i><span><strong>Editorial</strong><small>雑誌・読み物</small></span></button>
-          <button type="button" data-theme="bold"><i class="bold"></i><span><strong>Bold</strong><small>強い訴求</small></span></button>
-          <button type="button" data-theme="soft"><i class="soft"></i><span><strong>Soft</strong><small>やわらかい空気</small></span></button>
-          <button type="button" data-theme="technical"><i class="technical"></i><span><strong>Technical</strong><small>情報・プロダクト</small></span></button>
-        </div></fieldset>
-        <fieldset><legend>レイアウト</legend><div class="visual-options layouts" id="adultLayouts">
-          <button type="button" class="selected" data-layout="split"><i class="split"></i><span><strong>Split</strong><small>左右に大胆に分割</small></span></button>
-          <button type="button" data-layout="stack"><i class="stack"></i><span><strong>Stack</strong><small>縦のリズム</small></span></button>
-          <button type="button" data-layout="grid"><i class="grid"></i><span><strong>Grid</strong><small>カードで整理</small></span></button>
-        </div></fieldset>
-        <div class="design-controls">
-          <label><span>アクセントカラー</span><input type="color" id="adultAccent" value="#c95b3e"></label>
-          <label><span>文字の雰囲気</span><select id="fontMood"><option value="gothic">ゴシック</option><option value="serif">明朝</option><option value="mono">モノスペース</option></select></label>
-          <label><span>余白</span><select id="spacing"><option value="compact">コンパクト</option><option value="normal" selected>ふつう</option><option value="air">ゆったり</option></select></label>
+        <div class="panel-heading"><p>STEP 02 / CSS LAB</p><h2>数字を変えて、見た目を壊してみる。</h2><span>pxは大きさ、RGBは色。値を変えるたび、右のプレビューとCSSコードが変わります。</span></div>
+
+        <div class="css-lab-grid">
+          <section class="control-group"><h3>レイアウト</h3><div class="segmented" id="adultLayouts"><button class="selected" type="button" data-layout="split">左右</button><button type="button" data-layout="center">中央</button><button type="button" data-layout="offset">ずらす</button></div><label class="select-control"><span>フォント</span><select id="fontFamily"><option value="sans">ゴシック</option><option value="serif">明朝</option><option value="mono">モノスペース</option></select></label></section>
+
+          <section class="control-group"><h3>サイズ（px）</h3>
+            <div class="px-control"><label for="pageWidth">サイトの幅</label><input type="range" data-range-for="pageWidth" min="520" max="1180" step="10"><input id="pageWidth" type="number" min="520" max="1180" step="10"><b>px</b></div>
+            <div class="px-control"><label for="headingSize">名前の文字</label><input type="range" data-range-for="headingSize" min="28" max="96"><input id="headingSize" type="number" min="28" max="96"><b>px</b></div>
+            <div class="px-control"><label for="bodySize">本文の文字</label><input type="range" data-range-for="bodySize" min="12" max="26"><input id="bodySize" type="number" min="12" max="26"><b>px</b></div>
+            <div class="px-control"><label for="photoSize">写真サイズ</label><input type="range" data-range-for="photoSize" min="120" max="360" step="10"><input id="photoSize" type="number" min="120" max="360" step="10"><b>px</b></div>
+          </section>
+
+          <section class="control-group"><h3>余白・形（px）</h3>
+            <div class="px-control"><label for="pagePadding">内側の余白</label><input type="range" data-range-for="pagePadding" min="12" max="100" step="2"><input id="pagePadding" type="number" min="12" max="100" step="2"><b>px</b></div>
+            <div class="px-control"><label for="sectionGap">パーツの間</label><input type="range" data-range-for="sectionGap" min="6" max="64" step="2"><input id="sectionGap" type="number" min="6" max="64" step="2"><b>px</b></div>
+            <div class="px-control"><label for="cornerRadius">角の丸さ</label><input type="range" data-range-for="cornerRadius" min="0" max="48" step="2"><input id="cornerRadius" type="number" min="0" max="48" step="2"><b>px</b></div>
+            <div class="px-control"><label for="borderWidth">枠線</label><input type="range" data-range-for="borderWidth" min="0" max="8"><input id="borderWidth" type="number" min="0" max="8"><b>px</b></div>
+            <div class="px-control"><label for="shadowSize">影の大きさ</label><input type="range" data-range-for="shadowSize" min="0" max="30"><input id="shadowSize" type="number" min="0" max="30"><b>px</b></div>
+          </section>
         </div>
-        <fieldset><legend>キービジュアル</legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>IMAGE</span></div><div><label class="file-button" for="adultPhotoInput">画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="removeAdultPhoto">画像を外す</button><p>画像なしでも完成できます。LANモードではスマホから一時転送できます。</p></div></div></fieldset>
+
+        <div class="rgb-section"><div class="rgb-heading"><div><p>RGB COLOR MIXER</p><h3>0〜255を入れて色を作る</h3></div><span>R = Red / G = Green / B = Blue</span></div><div class="rgb-grid">
+          <div class="rgb-card" data-rgb-group="background"><div class="rgb-card-head"><strong>背景</strong><i id="backgroundSwatch"></i></div><div class="rgb-inputs"><label>R<input id="backgroundR" type="number" min="0" max="255"></label><label>G<input id="backgroundG" type="number" min="0" max="255"></label><label>B<input id="backgroundB" type="number" min="0" max="255"></label></div><code id="backgroundCode"></code></div>
+          <div class="rgb-card" data-rgb-group="accent"><div class="rgb-card-head"><strong>アクセント</strong><i id="accentSwatch"></i></div><div class="rgb-inputs"><label>R<input id="accentR" type="number" min="0" max="255"></label><label>G<input id="accentG" type="number" min="0" max="255"></label><label>B<input id="accentB" type="number" min="0" max="255"></label></div><code id="accentCode"></code></div>
+          <div class="rgb-card" data-rgb-group="text"><div class="rgb-card-head"><strong>文字</strong><i id="textSwatch"></i></div><div class="rgb-inputs"><label>R<input id="textR" type="number" min="0" max="255"></label><label>G<input id="textG" type="number" min="0" max="255"></label><label>B<input id="textB" type="number" min="0" max="255"></label></div><code id="textCode"></code></div>
+        </div></div>
+
+        <div class="live-code"><div><span></span><span></span><span></span><b>style.css</b></div><pre id="cssCodePreview"></pre></div>
         <div class="panel-nav"><button type="button" class="secondary back" data-back="0">← HTML</button><button type="button" class="primary next" data-next="2">JavaScriptへ →</button></div>
       </section>
 
       <section class="adult-panel" data-panel="2" hidden>
-        <div class="panel-heading"><p>STEP 03 / JAVASCRIPT</p><h2>押したくなる理由を作る。</h2><span>動けば高得点ではありません。お題と目的に合うインタラクションを選びます。</span></div>
-        <fieldset><legend>ページ表示の動き</legend><div class="interaction-options" id="entryMotion">
-          <button class="selected" type="button" data-entry="fade"><b>FADE</b><span>静かに表示</span></button>
-          <button type="button" data-entry="slide"><b>SLIDE</b><span>下から表示</span></button>
-          <button type="button" data-entry="stagger"><b>STAGGER</b><span>順番に表示</span></button>
-          <button type="button" data-entry="none"><b>NONE</b><span>動かさない</span></button>
-        </div></fieldset>
-        <fieldset><legend>ボタンを押した時</legend><div class="interaction-options" id="buttonAction">
-          <button class="selected" type="button" data-action="message"><b>MESSAGE</b><span>メッセージを出す</span></button>
-          <button type="button" data-action="theme"><b>THEME</b><span>配色を切り替える</span></button>
-          <button type="button" data-action="highlight"><b>FOCUS</b><span>大事な部分を強調</span></button>
-          <button type="button" data-action="none"><b>NONE</b><span>何もしない</span></button>
-        </div></fieldset>
-        <div class="completion-row"><div><p>FINAL CHECK</p><h3>プレビューを操作してから採点しよう。</h3><span>点数の下に「次に直すところ」が表示されます。</span></div><button type="button" id="revealScore">採点結果を見る</button></div>
+        <div class="panel-heading"><p>STEP 03 / JAVASCRIPT</p><h2>「押す意味」がある機能を追加する。</h2><span>自己紹介サイトで実際に使えそうな機能を選びます。複数選択できます。</span></div>
+        <div class="js-feature-list">
+          <label class="js-feature"><input id="jsReveal" type="checkbox"><span class="feature-number">01</span><div><strong>もっと見る <b>最大 +7</b></strong><p>ボタンを押すと、HTMLで入力した追加プロフィールを開閉します。</p></div><code>classList.toggle()</code></label>
+          <label class="js-feature"><input id="jsRoulette" type="checkbox"><span class="feature-number">02</span><div><strong>好きなものガチャ <b>最大 +7</b></strong><p>ボタンを押すたび「好きなもの」から1つをランダムに表示します。</p></div><code>Math.random()</code></label>
+          <label class="js-feature"><input id="jsPhotoZoom" type="checkbox"><span class="feature-number">03</span><div><strong>写真を拡大 <b>最大 +6</b></strong><p>プロフィール写真をクリックすると、大きく表示して閉じられます。</p></div><code>addEventListener()</code></label>
+        </div>
+        <div class="js-note"><strong>右のプレビューで実際に押して確認できます。</strong><span>選んだだけで終わりではなく、入力内容がそろっていると満点になります。</span></div>
         <div class="export-row"><button type="button" id="adultDownload">HTMLを保存</button><button type="button" id="adultShare">QRでスマホへ送る</button></div>
         <div class="panel-nav"><button type="button" class="secondary back" data-back="1">← CSS</button><span></span></div>
       </section>
@@ -102,11 +103,11 @@
 
     <aside class="adult-preview-column">
       <div class="preview-heading"><div><p>LIVE PREVIEW</p><h2>完成イメージ</h2></div><div class="device-buttons"><button class="active" type="button" data-device="desktop">PC</button><button type="button" data-device="mobile">SP</button></div></div>
-      <div class="adult-browser desktop" id="adultBrowser"><div class="browser-bar"><span></span><span></span><span></span><b>challenge-site.html</b></div><iframe id="adultPreview" title="制作中のサイト" sandbox="allow-scripts"></iframe></div>
+      <div class="adult-browser desktop" id="adultBrowser"><div class="browser-bar"><span></span><span></span><span></span><b>my-profile.html</b></div><iframe id="adultPreview" title="制作中のサイト" sandbox="allow-scripts allow-modals"></iframe></div>
     </aside>
   </main>
 
-  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING</p><h2>採点の考え方</h2><div class="rubric"><div><b>HTML / 40</b><p>お題に必要な情報があり、見出し・本文・CTAの構造が作れているか。</p></div><div><b>CSS / 35</b><p>テーマ・レイアウト・文字・余白を目的に合わせて選び、初期状態から設計できているか。</p></div><div><b>JavaScript / 25</b><p>CTAと操作結果がつながり、適切な動き・反応を設定できているか。</p></div></div><p>難易度を上げると、必要なセクション数やカスタマイズ項目が増えます。</p></div></dialog>
+  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>点数は「どれだけ試したか」の目安</h2><div class="rubric"><div><b>HTML / 35</b><p>名前・自己紹介・好きなもの・追加プロフィール・写真など、ページの中身を作る。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントを初期状態から実際に操作した項目に点が入る。</p></div><div><b>JavaScript / 20</b><p>意味のある機能を選び、その機能に必要な内容も用意すると満点。</p></div></div><p>見た目の「良し悪し」を機械が決める採点ではありません。変更して、違いを確かめるほど点が増える学習用スコアです。</p></div></dialog>
   <dialog id="adultQrDialog"><div class="dialog-paper qr-dialog"><button type="button" class="dialog-close" data-close="adultQrDialog">×</button><p class="dialog-kicker">SAME WI-FI</p><h2 id="adultQrTitle">スマホとつなぐ</h2><div id="adultQrBox" class="adult-qr-box">QRを準備しています…</div><p id="adultQrStatus"></p><a id="adultQrLink" href="#" target="_blank" rel="noopener" hidden>リンクを開く</a></div></dialog>
   <div id="adultToast" class="adult-toast" role="status" aria-live="polite"></div>
 </body>

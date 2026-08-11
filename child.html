@@ -28,10 +28,43 @@
       <section class="kid-editor">
         <section class="kid-panel active" data-panel="0">
           <div class="panel-title yellow-title"><span>1</span><div><p>HTMLのおしごと</p><h1>なかみを つくろう！</h1></div></div>
-          <p class="kid-explain">ページに「なにを のせるか」を きめるよ。</p>
+          <p class="kid-explain">じぶんのことを いれて、ページの「なかみ」を つくるよ。</p>
+
+          <div class="input-method-card">
+            <div><strong>もじの いれかた</strong><small>すきな ほうを えらべるよ</small></div>
+            <div class="input-method-buttons" id="inputMethodButtons">
+              <button type="button" class="selected" data-input-mode="kana" aria-pressed="true">あ ひらがなパッド</button>
+              <button type="button" data-input-mode="pc" aria-pressed="false">⌨ PCキーボード</button>
+            </div>
+          </div>
 
           <div class="big-block">
-            <h2><span aria-hidden="true">①</span> じぶんの しゃしん・マーク</h2>
+            <h2><span aria-hidden="true">①</span> なまえ</h2>
+            <label class="kid-text-field active-field" data-field="name">
+              <span id="nameFieldHint">ひらがなパッドで いれてね</span>
+              <input id="kidName" type="text" maxlength="10" autocomplete="off" readonly placeholder="なまえ">
+            </label>
+            <div class="name-actions"><button type="button" id="backspaceButton">⌫ ひとつけす</button><button type="button" id="clearNameButton">ぜんぶけす</button></div>
+          </div>
+
+          <div class="big-block">
+            <h2><span aria-hidden="true">②</span> ひとこと</h2>
+            <div class="phrase-grid" id="phraseGrid">
+              <button type="button" data-value="よろしくね！">よろしくね！</button>
+              <button type="button" data-value="いっしょにあそぼう！">いっしょにあそぼう！</button>
+              <button type="button" data-value="つくるのがだいすき！">つくるのがだいすき！</button>
+              <button type="button" data-value="みつけるのがだいすき！">みつけるのがだいすき！</button>
+            </div>
+            <p class="or-label">じぶんで つくっても OK</p>
+            <label class="kid-text-field" data-field="phrase">
+              <span id="phraseFieldHint">ひらがなパッドで いれてね</span>
+              <input id="kidPhrase" type="text" maxlength="22" autocomplete="off" readonly placeholder="ひとこと">
+            </label>
+            <div class="name-actions"><button type="button" id="backspacePhraseButton">⌫ ひとつけす</button><button type="button" id="clearPhraseButton">ぜんぶけす</button></div>
+          </div>
+
+          <div class="big-block">
+            <h2><span aria-hidden="true">③</span> じぶんの しゃしん・マーク</h2>
             <div class="photo-choice-row">
               <div class="kid-photo-preview" id="kidPhotoPreview" aria-label="えらんだ写真"><span>🐧</span></div>
               <div class="photo-choice-actions">
@@ -40,7 +73,7 @@
                 <button type="button" id="kidUseMarkButton">★ マークにもどす</button>
               </div>
             </div>
-            <p class="photo-help">しゃしんは このパソコンのなかだけで つかうよ。QRは おなじWi-Fiのスマホから おくれるよ。</p>
+            <p class="photo-help">QRをスマホで よむ → しゃしんを えらぶ → 「パソコンへ送る」で とどくよ。</p>
             <div class="avatar-grid" id="avatarGrid">
               <button type="button" class="avatar selected" data-avatar="🐧" aria-pressed="true">🐧</button>
               <button type="button" class="avatar" data-avatar="🦖" aria-pressed="false">🦖</button>
@@ -52,19 +85,7 @@
           </div>
 
           <div class="big-block">
-            <h2><span aria-hidden="true">②</span> なまえ</h2>
-            <button type="button" class="pad-target active" data-target="kidName" aria-pressed="true">
-              <span class="target-label">ここを おして もじを いれる</span>
-              <output id="kidName" class="pad-output">なまえ</output>
-            </button>
-            <div class="name-actions">
-              <button type="button" id="backspaceButton">⌫ ひとつけす</button>
-              <button type="button" id="clearNameButton">ぜんぶけす</button>
-            </div>
-          </div>
-
-          <div class="big-block">
-            <h2><span aria-hidden="true">③</span> すきなもの <small>3こまで</small></h2>
+            <h2><span aria-hidden="true">④</span> すきなもの <small>3こまで</small></h2>
             <div class="favorite-grid" id="kidFavorites">
               <button type="button" data-value="ゲーム"><span>🎮</span>ゲーム</button>
               <button type="button" data-value="おえかき"><span>🎨</span>おえかき</button>
@@ -78,28 +99,12 @@
             </div>
           </div>
 
-          <div class="big-block">
-            <h2><span aria-hidden="true">④</span> ひとこと</h2>
-            <div class="phrase-grid" id="phraseGrid">
-              <button type="button" data-value="よろしくね！">よろしくね！</button>
-              <button type="button" data-value="いっしょにあそぼう！">いっしょにあそぼう！</button>
-              <button type="button" data-value="つくるのがだいすき！">つくるのがだいすき！</button>
-              <button type="button" data-value="みつけるのがだいすき！">みつけるのがだいすき！</button>
-            </div>
-            <p class="or-label">または じぶんで つくる</p>
-            <button type="button" class="pad-target" data-target="kidPhrase" aria-pressed="false">
-              <span class="target-label">ここを おして ひらがなパッドで いれる</span>
-              <output id="kidPhrase" class="pad-output small-output">ことば</output>
-            </button>
-            <div class="name-actions"><button type="button" id="backspacePhraseButton">⌫ ひとつけす</button><button type="button" id="clearPhraseButton">ぜんぶけす</button></div>
-          </div>
-
           <div class="panel-nav"><span></span><button class="next-button" type="button" data-next="1">みためへ →</button></div>
         </section>
 
         <section class="kid-panel" data-panel="1" hidden>
           <div class="panel-title blue-title"><span>2</span><div><p>CSSのおしごと</p><h1>みためを かえよう！</h1></div></div>
-          <p class="kid-explain">いろや かたちを えらぶと、おなじなかみでも ちがうページになるよ。</p>
+          <p class="kid-explain">いろ・ならべかた・かざりで、おなじなかみを ぜんぜんちがう作品に できるよ。</p>
 
           <div class="big-block">
             <h2>① いろ</h2>
@@ -114,20 +119,21 @@
           <div class="big-block">
             <h2>② ならべかた</h2>
             <div class="layout-grid" id="kidLayouts">
-              <button type="button" class="layout-choice selected" data-layout="big" aria-pressed="true"><span class="layout-mini big-mini"><i></i><b></b><b></b></span><strong>どーん！</strong></button>
-              <button type="button" class="layout-choice" data-layout="cards" aria-pressed="false"><span class="layout-mini cards-mini"><i></i><b></b><b></b></span><strong>カード</strong></button>
-              <button type="button" class="layout-choice" data-layout="stripe" aria-pressed="false"><span class="layout-mini stripe-mini"><i></i><b></b><b></b></span><strong>じゆうちょう</strong></button>
-              <button type="button" class="layout-choice" data-layout="poster" aria-pressed="false"><span class="layout-mini poster-mini"><i></i><b></b><b></b></span><strong>ポスター</strong></button>
+              <button type="button" class="layout-choice selected" data-layout="big" aria-pressed="true"><span class="layout-mini big-mini"><i></i><b></b><b></b></span><strong>どーん！</strong><small>しゃしんを おおきく</small></button>
+              <button type="button" class="layout-choice" data-layout="storybook" aria-pressed="false"><span class="layout-mini story-mini"><i></i><b></b><b></b></span><strong>えほん</strong><small>みぎ・ひだりで みせる</small></button>
+              <button type="button" class="layout-choice" data-layout="stripe" aria-pressed="false"><span class="layout-mini stripe-mini"><i></i><b></b><b></b></span><strong>じゆうちょう</strong><small>ノートみたいに</small></button>
+              <button type="button" class="layout-choice" data-layout="poster" aria-pressed="false"><span class="layout-mini poster-mini"><i></i><b></b><b></b></span><strong>ポスター</strong><small>おおきな もじで</small></button>
             </div>
           </div>
 
-          <div class="big-block">
-            <h2>③ かざり</h2>
+          <div class="big-block decor-block">
+            <h2>③ かざりセット</h2>
+            <p class="block-help">ちいさなマークだけじゃなく、ページぜんたいの ふんいきが かわるよ。</p>
             <div class="decor-grid" id="kidDecor">
-              <button type="button" class="decor selected" data-decor="stars" aria-pressed="true">⭐<small>ほし</small></button>
-              <button type="button" class="decor" data-decor="dots" aria-pressed="false">●<small>てんてん</small></button>
-              <button type="button" class="decor" data-decor="tape" aria-pressed="false">▰<small>テープ</small></button>
-              <button type="button" class="decor" data-decor="none" aria-pressed="false">○<small>なし</small></button>
+              <button type="button" class="decor selected" data-decor="doodle" aria-pressed="true"><span class="decor-preview doodle-preview">✎ ★ 〰</span><strong>おえかき</strong><small>クレヨンの せん</small></button>
+              <button type="button" class="decor" data-decor="stickers" aria-pressed="false"><span class="decor-preview sticker-preview">🌈 ⭐ 💛</span><strong>シールいっぱい</strong><small>おおきな シール</small></button>
+              <button type="button" class="decor" data-decor="scrap" aria-pressed="false"><span class="decor-preview scrap-preview">▰ ▱ ▰</span><strong>こうさく</strong><small>テープと かみ</small></button>
+              <button type="button" class="decor" data-decor="festival" aria-pressed="false"><span class="decor-preview festival-preview">▲▼▲▼</span><strong>おまつり</strong><small>はたと パラパラ</small></button>
             </div>
           </div>
 
@@ -136,7 +142,7 @@
 
         <section class="kid-panel" data-panel="2" hidden>
           <div class="panel-title pink-title"><span>3</span><div><p>JavaScriptのおしごと</p><h1>ボタンで しあげよう！</h1></div></div>
-          <p class="kid-explain">ボタンを おすと、ページの みためが かわるよ。JavaScriptが「おした」を うけとって しあげるよ。</p>
+          <p class="kid-explain">JavaScriptが ボタンの「おした！」を うけとって、作品のパーツを きりかえるよ。できあがりは 1まいの写真になるよ。</p>
 
           <div class="big-block">
             <h2>① しゃしんの わく</h2>
@@ -159,7 +165,7 @@
           </div>
 
           <div class="big-block">
-            <h2>③ もよう</h2>
+            <h2>③ はいけいの もよう</h2>
             <div class="finish-choice-grid" id="kidPatterns">
               <button type="button" class="finish-choice selected" data-pattern="confetti" aria-pressed="true"><span>✦</span><strong>パラパラ</strong></button>
               <button type="button" class="finish-choice" data-pattern="checks" aria-pressed="false"><span>▦</span><strong>チェック</strong></button>
@@ -168,71 +174,31 @@
             </div>
           </div>
 
-          <div class="finish-box">
-            <span class="finish-star" aria-hidden="true">★</span>
-            <div><h2>できあがったら もらおう！</h2><p>みぎのプレビューと おなじ見た目で、1まいの写真にするよ。</p></div>
-          </div>
-          <div class="finish-actions">
-            <button type="button" class="card-button" id="makeCardButton">📱 QRで写真をもらう</button>
-            <button type="button" class="html-button" id="kidDownloadHtml">おとなとHTMLをほぞん</button>
-          </div>
-
+          <div class="finish-box"><span class="finish-star" aria-hidden="true">★</span><div><h2>できあがったら もらおう！</h2><p>みぎのプレビューと おなじ見た目を、そのまま 1まいの写真にするよ。</p></div></div>
+          <div class="finish-actions"><button type="button" class="card-button" id="makeCardButton">📱 QRで写真をもらう</button><button type="button" class="html-button" id="kidDownloadHtml">おとなとHTMLをほぞん</button></div>
           <div class="panel-nav"><button class="back-button" type="button" data-back="1">← もどる</button><span></span></div>
         </section>
       </section>
 
       <aside class="kid-preview-wrap">
         <div class="preview-label"><span class="live-dot"></span><strong>つくっているページ</strong></div>
-        <div class="kid-browser">
-          <div class="browser-top"><span></span><span></span><span></span><b>my-page.html</b></div>
-          <div class="kid-preview-stage"><img id="kidPreview" alt="つくっているページのプレビュー"></div>
-        </div>
+        <div class="kid-browser"><div class="browser-top"><span></span><span></span><span></span><b>my-page.html</b></div><div class="kid-preview-stage"><img id="kidPreview" alt="つくっているページのプレビュー"></div></div>
         <div class="what-learned" id="learnedText"><b>HTML</b> は、ページの「なかみ」をつくるもの。</div>
       </aside>
     </div>
   </main>
 
   <section class="hiragana-dock" id="hiraganaDock" aria-label="ひらがなパッド">
-    <div class="dock-head"><strong>ひらがなパッド</strong><span id="padHint">なまえを いれてね</span><button type="button" id="toggleKanaButton" aria-expanded="true">キーボードを かくす ▼</button></div><div id="kanaBody">
-    <div class="kana-tabs" role="tablist">
-      <button type="button" class="active" data-kana-page="basic">あ〜ん</button>
-      <button type="button" data-kana-page="voiced">が〜ぽ</button>
-      <button type="button" data-kana-page="small">ちいさい</button>
-    </div>
-    <div class="kana-grid" id="kanaGrid"></div>
+    <div class="dock-head"><div><strong>あいうえお ひらがなパッド</strong><span id="padHint">なまえを いれてね</span></div><button type="button" id="toggleKanaButton" aria-expanded="true">キーボードを かくす ▼</button></div>
+    <div id="kanaBody">
+      <div class="kana-tabs" role="tablist"><button type="button" class="active" data-kana-page="basic">あいうえお</button><button type="button" data-kana-page="voiced">が・ざ・だ</button><button type="button" data-kana-page="small">ちいさい もじ</button></div>
+      <div class="kana-chart" id="kanaGrid"></div>
     </div>
   </section>
 
-  <dialog id="photoDialog">
-    <div class="dialog-card photo-dialog-card">
-      <button class="dialog-x" type="button" id="closePhotoDialog" aria-label="とじる">×</button>
-      <p class="dialog-kicker">PHONE PHOTO</p>
-      <h2>スマホから しゃしんを おくろう</h2>
-      <div class="photo-qr-grid">
-        <div id="photoQrBox" class="qr-box"><span>QRをつくっています…</span></div>
-        <div><p id="photoQrStatus">おなじWi-Fiのスマホで よみこんで、しゃしんを えらんでね。</p><a id="photoShareLink" href="#" target="_blank" rel="noopener" hidden>スマホ用ページをひらく</a></div>
-      </div>
-    </div>
-  </dialog>
+  <dialog id="photoDialog"><div class="dialog-card photo-dialog-card"><button class="dialog-x" type="button" id="closePhotoDialog" aria-label="とじる">×</button><p class="dialog-kicker">PHONE PHOTO</p><h2>スマホから しゃしんを おくろう</h2><div class="photo-qr-grid"><div id="photoQrBox" class="qr-box"><span>QRをつくっています…</span></div><div><p id="photoQrStatus">おなじWi-Fiのスマホで よみこんで、しゃしんを えらんでね。</p><a id="photoShareLink" href="#" target="_blank" rel="noopener" hidden>スマホ用ページをひらく</a></div></div></div></dialog>
 
-  <dialog id="cardDialog">
-    <div class="dialog-card">
-      <button class="dialog-x" type="button" id="closeCardDialog" aria-label="とじる">×</button>
-      <p class="dialog-kicker">MY PAGE CARD</p>
-      <h2>できたカードを もらおう！</h2>
-      <div class="card-dialog-grid">
-        <canvas id="cardCanvas" width="900" height="1200" aria-label="完成カード"></canvas>
-        <div class="qr-side">
-          <div id="cardQrBox" class="qr-box"><span>QRをつくっています…</span></div>
-          <p id="cardQrStatus">おなじWi-Fiのスマホで よみこんでね。</p>
-          <a id="cardShareLink" href="#" target="_blank" rel="noopener" hidden>スマホ用ページをひらく</a>
-          <button type="button" id="downloadCardDirect">このパソコンに画像保存</button>
-        </div>
-      </div>
-      <p class="adult-small">おうちの人・先生へ：QR共有は同じLAN内の一時メモリを使います。インターネットへ公開しないでください。</p>
-    </div>
-  </dialog>
-
+  <dialog id="cardDialog"><div class="dialog-card"><button class="dialog-x" type="button" id="closeCardDialog" aria-label="とじる">×</button><p class="dialog-kicker">MY PAGE CARD</p><h2>できたカードを もらおう！</h2><div class="card-dialog-grid"><canvas id="cardCanvas" width="900" height="1200" aria-label="完成カード"></canvas><div class="qr-side"><div id="cardQrBox" class="qr-box"><span>QRをつくっています…</span></div><p id="cardQrStatus">おなじWi-Fiのスマホで よみこんでね。</p><a id="cardShareLink" href="#" target="_blank" rel="noopener" hidden>スマホ用ページをひらく</a><button type="button" id="downloadCardDirect">このパソコンに画像保存</button></div></div><p class="adult-small">おうちの人・先生へ：QR共有は同じLAN内の一時メモリを使います。インターネットへ公開しないでください。</p></div></dialog>
   <div class="kid-toast" id="kidToast" role="status" aria-live="polite"></div>
 </body>
 </html>
