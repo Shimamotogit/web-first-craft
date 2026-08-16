@@ -10,11 +10,11 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="じぶんページ工房 ホーム">
+    <a class="brand" href="index.html" aria-label="じぶんページ工房 ホーム">
       <span class="brand-mark" aria-hidden="true">⌘</span>
       <span><small>TECH × CREATE</small><strong>じぶんページ工房</strong></span>
     </a>
-    <div class="lan-chip" id="lanChip"><span></span> このパソコンで動作中</div>
+    <div class="lan-chip" id="lanChip"><span></span> QR機能を確認中</div>
   </header>
 
   <main>
@@ -89,7 +89,11 @@
     fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{
       const chip=document.getElementById('lanChip');
       if(data.enabled){chip.classList.add('ready');chip.innerHTML='<span></span> LANモード：QR機能が使えます';}
-    }).catch(()=>{});
+    }).catch(()=>{
+      const chip=document.getElementById('lanChip');
+      chip.classList.remove('ready');
+      chip.innerHTML='<span></span> 静的モード：QRはLAN版で使えます';
+    });
   </script>
 </body>
 </html>

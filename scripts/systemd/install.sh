@@ -97,12 +97,32 @@ if ! sudo systemctl is-active --quiet "$SERVICE_NAME.service"; then
   exit 1
 fi
 
-LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+LAN_URL="$(
+  "$PYTHON" - "$PORT" <<'PYURL' 2>/dev/null || true
+import json
+import sys
+import time
+from urllib.request import urlopen
+port = sys.argv[1]
+for _ in range(20):
+    try:
+        with urlopen(f"http://127.0.0.1:{port}/api/config", timeout=0.5) as response:
+            data = json.load(response)
+        base_url = str(data.get("baseUrl", ""))
+        if base_url:
+            print(base_url)
+            break
+    except Exception:
+        time.sleep(0.15)
+PYURL
+)"
 echo
 echo "起動しました。ターミナルを閉じても動き続けます。"
 echo "このPC: http://localhost:$PORT"
-if [[ -n "$LAN_IP" ]]; then
-  echo "同じLAN: http://$LAN_IP:$PORT"
+if [[ -n "$LAN_URL" ]]; then
+  echo "同じLAN: $LAN_URL"
+else
+  echo "同じLANのURLを取得できませんでした。http://localhost:$PORT/api/config の baseUrl を確認してください。" >&2
 fi
 echo
 echo "状態確認: sudo systemctl status $SERVICE_NAME --no-pager"

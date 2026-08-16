@@ -48,7 +48,8 @@ def main() -> None:
         if js_path.name == "adult.js":
             # These IDs belong to the generated finished page, not the editor DOM.
             ids.update({"revealButton", "extraPanel", "rouletteButton", "rouletteResult", "photoZoom", "lightbox", "lightboxClose"})
-        refs=set(re.findall(r'\$\(\"#([A-Za-z0-9_-]+)\"\)', text))
+        refs=set(re.findall(r"\$\(\s*[\"']#([A-Za-z0-9_-]+)[\"']\s*\)", text))
+        refs.update(re.findall(r"getElementById\(\s*[\"']([A-Za-z0-9_-]+)[\"']\s*\)", text))
         missing=sorted(refs-ids)
         if missing: fail(f"{js_path.name}: missing referenced ids: {', '.join(missing)}")
 
@@ -58,6 +59,17 @@ def main() -> None:
 
     child=(WEB/"js/child.js").read_text(encoding="utf-8")
     adult=(WEB/"js/adult.js").read_text(encoding="utf-8")
+    for js_path, text in ((WEB/"js/child.js", child), (WEB/"js/adult.js", adult)):
+        if "server.py" in text:
+            fail(f"{js_path.name}: legacy server.py QR guidance remains")
+    index_html=(WEB/"index.html").read_text(encoding="utf-8")
+    if 'href="/"' in index_html:
+        fail("index.html: root-absolute home link breaks GitHub Pages subpaths")
+    if "このパソコンで動作中" in index_html:
+        fail("index.html: LAN state must not be claimed before /api/config succeeds")
+    pages=(ROOT/".github/workflows/pages.yml").read_text(encoding="utf-8")
+    if "\n  push:" in pages:
+        fail("pages.yml: Pages deployment must be manual unless Pages is explicitly enabled")
     if "buildKidHtml" not in child or "drawCard" not in child or "/api/cards" not in child:
         fail("child mode core build/card functions are missing")
     child_html=(WEB/"child.html").read_text(encoding="utf-8")

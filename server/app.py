@@ -38,6 +38,8 @@ SHARE_TTL = 30 * 60
 CARD_TTL = 30 * 60
 MAX_JSON_BYTES = 4 * 1024 * 1024
 MAX_HTML_BYTES = 3 * 1024 * 1024
+MAX_ACTIVE_SESSIONS = 96
+MAX_SESSION_MEMORY_BYTES = 96 * 1024 * 1024
 SAFE_STATIC = {
     "/": "index.html",
     "/index.html": "index.html",
@@ -70,13 +72,49 @@ def make_token() -> str:
     return secrets.token_urlsafe(18)
 
 
-def cleanup_expired() -> None:
+def _cleanup_expired_locked() -> None:
     current = now()
+    for store in (photo_sessions, share_sessions, card_sessions):
+        expired = [key for key, value in store.items() if value["expires_at"] <= current]
+        for key in expired:
+            del store[key]
+
+
+def session_payload_bytes(item: dict) -> int:
+    total = 0
+    for key in ("photo", "html"):
+        value = item.get(key)
+        if isinstance(value, str):
+            total += len(value.encode("utf-8"))
+    image = item.get("image")
+    if isinstance(image, (bytes, bytearray)):
+        total += len(image)
+    return total
+
+
+def reserve_session_capacity_locked(additional_bytes: int = 0, protected: tuple | None = None, extra_session: bool = False) -> bool:
+    _cleanup_expired_locked()
+    stores = (photo_sessions, share_sessions, card_sessions)
+    records = [(store, key, item) for store in stores for key, item in store.items()]
+    used = sum(session_payload_bytes(item) for _, _, item in records)
+    target_count = len(records) + (1 if extra_session else 0)
+    candidates = sorted(
+        (record for record in records if protected is None or not (record[0] is protected[0] and record[1] == protected[1])),
+        key=lambda record: record[2].get("created_at", 0),
+    )
+    while target_count > MAX_ACTIVE_SESSIONS or used + additional_bytes > MAX_SESSION_MEMORY_BYTES:
+        if not candidates:
+            return False
+        store, key, item = candidates.pop(0)
+        used -= session_payload_bytes(item)
+        target_count -= 1
+        store.pop(key, None)
+    return True
+
+
+def cleanup_expired() -> None:
     with sessions_lock:
-        for store in (photo_sessions, share_sessions, card_sessions):
-            expired = [key for key, value in store.items() if value["expires_at"] <= current]
-            for key in expired:
-                del store[key]
+        _cleanup_expired_locked()
 
 
 def get_lan_ip() -> str:
@@ -209,7 +247,7 @@ class KoboHandler(BaseHTTPRequestHandler):
         path = unquote(parsed.path)
 
         if path == "/api/config":
-            self.send_json({"enabled": True, "baseUrl": self.base_url, "expiresMinutes": {"photo": 20, "share": 30, "card": 30}})
+            self.send_json({"enabled": True, "baseUrl": self.base_url, "expiresMinutes": {"photo": 20, "share": 30, "card": 30}, "limits": {"activeSessions": MAX_ACTIVE_SESSIONS, "memoryMB": MAX_SESSION_MEMORY_BYTES // (1024 * 1024)}})
             return
 
         if path == "/api/qr":
@@ -268,11 +306,14 @@ class KoboHandler(BaseHTTPRequestHandler):
             if not item or item["expires_at"] <= now():
                 self.send_html("<h1>共有の時間が切れました</h1>", HTTPStatus.GONE)
                 return
-            headers = {
-                "Cache-Control": "no-store",
-                "Content-Security-Policy": "default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'",
-            }
-            if action == "download":
+            headers = {"Cache-Control": "no-store"}
+            if action == "view":
+                headers["Content-Security-Policy"] = (
+                    "default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:; "
+                    "script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; "
+                    "form-action 'none'; sandbox allow-scripts"
+                )
+            else:
                 encoded = quote(item["filename"])
                 headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded}"
             self.send_bytes(item["html"].encode("utf-8"), "text/html; charset=utf-8", headers=headers)
@@ -320,6 +361,9 @@ class KoboHandler(BaseHTTPRequestHandler):
             token = make_token()
             expires_at = now() + PHOTO_TTL
             with sessions_lock:
+                if not reserve_session_capacity_locked(extra_session=True):
+                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                    return
                 photo_sessions[token] = {"created_at": now(), "expires_at": expires_at, "photo": ""}
             upload_url = f"{self.base_url}/phone/photo/{quote(token)}"
             self.send_json({"token": token, "uploadUrl": upload_url, "expiresAt": expires_at}, HTTPStatus.CREATED)
@@ -342,6 +386,11 @@ class KoboHandler(BaseHTTPRequestHandler):
                 if not item or item["expires_at"] <= now():
                     self.send_json({"error": "expired"}, HTTPStatus.GONE)
                     return
+                old_size = session_payload_bytes(item)
+                new_size = len(photo.encode("utf-8"))
+                if not reserve_session_capacity_locked(max(0, new_size - old_size), protected=(photo_sessions, token)):
+                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                    return
                 item["photo"] = photo
             self.send_json({"ok": True})
             return
@@ -363,6 +412,9 @@ class KoboHandler(BaseHTTPRequestHandler):
                 filename += ".html"
             nickname = str(payload.get("nickname", ""))[:24]
             with sessions_lock:
+                if not reserve_session_capacity_locked(len(markup.encode("utf-8")), extra_session=True):
+                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                    return
                 share_sessions[token] = {"html": markup, "filename": filename, "nickname": nickname, "created_at": now(), "expires_at": expires_at}
             share_url = f"{self.base_url}/share/{quote(token)}"
             self.send_json({"token": token, "shareUrl": share_url, "expiresAt": expires_at}, HTTPStatus.CREATED)
@@ -400,6 +452,9 @@ class KoboHandler(BaseHTTPRequestHandler):
                 filename += ".png"
             title = str(payload.get("title", "作品カード"))[:40]
             with sessions_lock:
+                if not reserve_session_capacity_locked(len(raw), extra_session=True):
+                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
+                    return
                 card_sessions[token] = {"image": raw, "filename": filename, "title": title, "created_at": now(), "expires_at": expires_at}
             card_url = f"{self.base_url}/card/{quote(token)}"
             self.send_json({"token": token, "cardUrl": card_url, "expiresAt": expires_at}, HTTPStatus.CREATED)

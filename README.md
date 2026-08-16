@@ -52,7 +52,7 @@ Windowsは `scripts/launch/start-local.bat`、macOS / Linuxは `./scripts/launch
 同じLANから: http://192.168.x.x:4173
 ```
 
-スマートフォンはパソコンと同じWi-Fiへ接続してください。
+スマートフォンはパソコンと同じWi-Fiへ接続してください。QR機能を使うときは、GitHub PagesやHTMLファイル直開きではなく、起動時に表示された `このパソコン` / `同じLAN` のURLから開いてください。
 
 ### Ubuntuで常駐させる（おすすめ）
 
@@ -92,7 +92,7 @@ bash scripts/systemd/uninstall.sh
 
 LANサーバーは `ThreadingHTTPServer` で複数リクエストを並行処理します。写真送信・完成HTML・完成カードは、作成ごとにランダムな一時トークンを発行して別々のセッションとして管理します。
 
-各PCの編集内容は各ブラウザのローカルストレージに保存されるため、**別々のPCから同時に作業しても編集内容は共有されません。** QR写真転送についても、複数セッションを同時生成して他の利用者の写真と混ざらないことを統合テストしています。
+各PCの編集内容は各ブラウザのローカルストレージに保存されるため、**別々のPCから同時に作業しても編集内容は共有されません。** QR写真転送についても、複数セッションを同時生成して他の利用者の写真と混ざらないことを統合テストしています。LANサーバーは一時セッション数と総メモリ使用量にも上限を設け、古いセッションから整理してメモリの増え続けを防ぎます。
 
 ## こどもモード：スマホから写真を送る
 
@@ -132,7 +132,8 @@ node --check web/js/adult.js
 python3 -m py_compile server/app.py
 python3 tests/check_static.py
 python3 tests/test_server.py
-bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh
+bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
+CHECK_ONLY=1 bash scripts/systemd/install.sh
 ```
 
 ## ディレクトリ構成
@@ -162,7 +163,7 @@ web-first-craft/
 └── LICENSE
 ```
 
-`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。
+`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。GitHub Pagesのデプロイは自動実行せず、Pagesを有効化した場合だけActionsから手動実行します。Pages版ではLANバックエンドがないためQR機能は利用できません。
 
 ## ライセンス
 

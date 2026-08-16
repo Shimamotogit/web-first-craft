@@ -22,7 +22,7 @@ def main():
     thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start();base=f"http://127.0.0.1:{httpd.server_port}"
     try:
         with request(base,"/api/config") as r:
-            cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30
+            cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS
         for page in ("/","/child.html","/adult.html"):
             with request(base,page) as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()
         for asset in ("/css/main.css","/css/child.css","/css/adult.css","/js/child.js","/js/adult.js"):
@@ -51,9 +51,13 @@ def main():
         with request(base,f"/api/photo-sessions/{token_a}/photo",{"photo":photo}) as r: assert json.load(r)["ok"] is True
         with request(base,f"/api/photo-sessions/{token_b}") as r: assert json.load(r)["status"]=="waiting"
         with request(base,f"/api/photo-sessions/{token_a}") as r: assert json.load(r)["status"]=="received"
-        markup='<!doctype html><html lang="ja"><body><h1>test</h1></body></html>'
+        markup='<!doctype html><html lang="ja"><body><h1>test</h1><button id="b">open</button><script>document.getElementById("b").textContent="ok"</script></body></html>'
         with request(base,"/api/shares",{"html":markup,"filename":"test.html","nickname":"test"}) as r: share=json.load(r)
         st=urlparse(share["shareUrl"]).path.split("/")[-1]
+        with request(base,f"/api/shares/{st}/view") as r:
+            assert r.read().decode()==markup
+            csp=r.headers.get("Content-Security-Policy","")
+            assert "script-src 'unsafe-inline'" in csp and "sandbox allow-scripts" in csp and "connect-src 'none'" in csp
         with request(base,f"/api/shares/{st}/download") as r: assert r.read().decode()==markup and "attachment" in r.headers.get("Content-Disposition","")
         png=base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
         dataurl="data:image/png;base64,"+base64.b64encode(png).decode()
@@ -62,7 +66,19 @@ def main():
         with request(base,f"/card/{ct}") as r: landing=r.read().decode();assert "画像を保存する" in landing
         with request(base,f"/api/cards/{ct}/view") as r: assert r.headers.get_content_type()=="image/png" and r.read().startswith(b"\x89PNG")
         with request(base,f"/api/cards/{ct}/download") as r: assert "attachment" in r.headers.get("Content-Disposition","")
-        print("OK: static pages, QR, gallery/camera photo, concurrent isolated sessions, HTML share, PNG card share")
+
+        # A busy workshop cannot grow unbounded session metadata in memory.
+        original_limit=kobo.MAX_ACTIVE_SESSIONS
+        try:
+            kobo.MAX_ACTIVE_SESSIONS=12
+            for _ in range(20):
+                with request(base,"/api/photo-sessions",{}) as r: assert json.load(r)["token"]
+            with kobo.sessions_lock:
+                total=len(kobo.photo_sessions)+len(kobo.share_sessions)+len(kobo.card_sessions)
+            assert total<=12
+        finally:
+            kobo.MAX_ACTIVE_SESSIONS=original_limit
+        print("OK: static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded sessions, PNG card share")
     finally:
         httpd.shutdown();httpd.server_close();thread.join(timeout=3)
 if __name__=="__main__": main()
