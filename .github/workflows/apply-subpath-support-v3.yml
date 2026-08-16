@@ -1,0 +1,52 @@
+name: Apply public subpath support v3
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-subpath-support-v3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply reviewed subpath patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, textwrap
+
+          source=Path('.github/workflows/apply-subpath-support-v2.yml').read_text(encoding='utf-8')
+          match=re.search(r"      - name: Add subpath support\n        run: \|\n          python3 - <<'PY'\n(.*?)\n          PY\n",source,re.S)
+          if not match:
+              raise SystemExit('v2 patch body not found')
+          exec(compile(textwrap.dedent(match.group(1)),'subpath-patch','exec'))
+
+          p=Path('server/app.py'); text=p.read_text(encoding='utf-8')
+          old='''    path = parsed.path.rstrip("/")\n    if path and not re.fullmatch(r"(?:/[A-Za-z0-9._~-]+)+", path):\n        raise ValueError("PUBLIC_BASE_URL path must contain only safe path segments such as /my-site")\n    return f"{parsed.scheme}://{parsed.netloc}{path}"\n'''
+          new='''    path = parsed.path.rstrip("/")\n    if path:\n        segments = path.split("/")[1:]\n        if not segments or any(segment in {"", ".", ".."} or not re.fullmatch(r"[A-Za-z0-9._~-]+", segment) for segment in segments):\n            raise ValueError("PUBLIC_BASE_URL path must contain only safe path segments such as /my-site")\n    return f"{parsed.scheme}://{parsed.netloc}{path}"\n'''
+          if old not in text:
+              raise SystemExit('normalizer safety block not found')
+          p.write_text(text.replace(old,new,1),encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check web/js/child.js
+          node --check web/js/adult.js
+          python3 -m py_compile server/app.py tests/check_static.py tests/test_server.py
+          python3 tests/check_static.py
+          python3 tests/test_server.py
+          bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
+          CHECK_ONLY=1 PUBLIC_BASE_URL=https://zovira.jp/my-site bash scripts/systemd/install.sh
+
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add server/app.py web/js/child.js web/js/adult.js web/index.html README.md docs/public-deployment.md tests/test_server.py tests/check_static.py
+          git commit -m 'Support public subpath hosting'
+          git push origin main
