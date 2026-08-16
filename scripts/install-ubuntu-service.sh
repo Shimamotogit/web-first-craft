@@ -24,13 +24,6 @@ if [[ ! -f "$ROOT/server.py" ]]; then
   exit 1
 fi
 
-escape_unit_value() {
-  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-
-ROOT_ESC="$(escape_unit_value "$ROOT")"
-PYTHON_ESC="$(escape_unit_value "$PYTHON")"
-SERVER_ESC="$(escape_unit_value "$ROOT/server.py")"
 TMP_UNIT="$(mktemp)"
 trap 'rm -f "$TMP_UNIT"' EXIT
 
@@ -44,8 +37,8 @@ After=network-online.target
 Type=simple
 User=$RUN_USER
 Group=$RUN_GROUP
-WorkingDirectory="$ROOT_ESC"
-ExecStart="$PYTHON_ESC" "$SERVER_ESC" --host 0.0.0.0 --port $PORT
+WorkingDirectory=$ROOT
+ExecStart="$PYTHON" "$ROOT/server.py" --host 0.0.0.0 --port $PORT
 Restart=on-failure
 RestartSec=2
 Environment=PYTHONUNBUFFERED=1
@@ -55,6 +48,11 @@ PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
 EOF
+
+if command -v systemd-analyze >/dev/null 2>&1; then
+  echo "systemd unit を検証しています..."
+  systemd-analyze verify "$TMP_UNIT"
+fi
 
 echo "systemd サービスを設定します: $SERVICE_NAME"
 sudo install -m 0644 "$TMP_UNIT" "$UNIT_PATH"
