@@ -1,0 +1,140 @@
+name: Apply cross-origin QR API support
+
+on:
+  push:
+    paths:
+      - .github/workflows/apply-cross-origin-api.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Apply split frontend/API support
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'anchor not found in {path}: {old[:120]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Load runtime API configuration before the mode scripts.
+          replace_once('web/child.html', '<script src="js/child.js" defer></script>', '<script src="runtime-config.js"></script>\n  <script src="js/child.js" defer></script>')
+          replace_once('web/adult.html', '<script src="js/adult.js" defer></script>', '<script src="runtime-config.js"></script>\n  <script src="js/adult.js" defer></script>')
+
+          index = Path('web/index.html')
+          text = index.read_text(encoding='utf-8')
+          old = '''  <script>\n    fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{\n      const chip=document.getElementById('lanChip');\n      if(data.enabled){chip.classList.add('ready');chip.innerHTML='<span></span> QR機能：利用できます';}\n    }).catch(()=>{\n      const chip=document.getElementById('lanChip');\n      chip.classList.remove('ready');\n      chip.innerHTML='<span></span> QR機能：バックエンド未接続';\n    });\n  </script>'''
+          if old not in text:
+              # Accept the older wording too.
+              old = '''  <script>\n    fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{\n      const chip=document.getElementById('lanChip');\n      if(data.enabled){chip.classList.add('ready');chip.innerHTML='<span></span> LANモード：QR機能が使えます';}\n    }).catch(()=>{\n      const chip=document.getElementById('lanChip');\n      chip.classList.remove('ready');\n      chip.innerHTML='<span></span> 静的モード：QRはLAN版で使えます';\n    });\n  </script>'''
+          new = '''  <script src="runtime-config.js"></script>\n  <script>\n    const apiBase=String(window.WEB_FIRST_CRAFT_CONFIG?.apiBaseUrl||'').trim().replace(/\\/$/,'');\n    fetch(`${apiBase}/api/config`,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{\n      const chip=document.getElementById('lanChip');\n      if(data.enabled){\n        chip.classList.add('ready');\n        chip.innerHTML=`<span></span> ${data.mode==='public'?'公開QRモード':'QR機能'}：利用できます`;\n      }\n    }).catch(()=>{\n      const chip=document.getElementById('lanChip');\n      chip.classList.remove('ready');\n      chip.innerHTML=apiBase?'<span></span> QR APIに接続できません':'<span></span> QRバックエンド未設定';\n    });\n  </script>'''
+          if old not in text:
+              raise SystemExit('index QR status block not found')
+          index.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Child mode: route every API request through the configured public API origin.
+          p = Path('web/js/child.js')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('transferInfo = { enabled:false, baseUrl:"" }', 'transferInfo = { enabled:false, baseUrl:"", apiBaseUrl:"" }', 1)
+          text = text.replace('fetch("/api/photo-sessions"', 'apiFetch("/api/photo-sessions"')
+          text = text.replace('fetch(`/api/photo-sessions/', 'apiFetch(`/api/photo-sessions/')
+          text = text.replace('fetch("/api/cards"', 'apiFetch("/api/cards"')
+          text = text.replace('img.src=`/api/qr?text=${encodeURIComponent(data.uploadUrl)}&t=${Date.now()}`;', 'img.src=apiUrl(`/api/qr?text=${encodeURIComponent(data.uploadUrl)}&t=${Date.now()}`);')
+          text = text.replace('img.src=`/api/qr?text=${encodeURIComponent(data.cardUrl)}&t=${Date.now()}`;', 'img.src=apiUrl(`/api/qr?text=${encodeURIComponent(data.cardUrl)}&t=${Date.now()}`);')
+          old = '''  async function checkTransferServer(){try{const response=await fetch("/api/config",{cache:"no-store"});if(!response.ok)throw new Error();const data=await response.json();transferInfo={enabled:Boolean(data.enabled),baseUrl:String(data.baseUrl||"")};}catch(_){transferInfo={enabled:false,baseUrl:""};}return transferInfo.enabled;}async function ensureTransferServer(){if(transferInfo.enabled)return true;if(await checkTransferServer())return true;showToast("QR機能に接続できません。しばらくしてからもういちどためしてね");return false;}'''
+          new = '''  function configuredApiBase(){return String(window.WEB_FIRST_CRAFT_CONFIG?.apiBaseUrl||"").trim().replace(/\\/$/,"");}\n  function apiUrl(path){const base=transferInfo.apiBaseUrl||configuredApiBase();return `${base}${path}`;}\n  function apiFetch(path,options){return fetch(apiUrl(path),options);}\n  async function checkTransferServer(){const apiBaseUrl=configuredApiBase();try{const response=await fetch(`${apiBaseUrl}/api/config`,{cache:"no-store"});if(!response.ok)throw new Error();const data=await response.json();transferInfo={enabled:Boolean(data.enabled),baseUrl:String(data.baseUrl||""),apiBaseUrl};}catch(_){transferInfo={enabled:false,baseUrl:"",apiBaseUrl};}return transferInfo.enabled;}async function ensureTransferServer(){if(transferInfo.enabled)return true;if(await checkTransferServer())return true;showToast("QR機能に接続できません。公開サイトのQR API設定を確認してね");return false;}'''
+          if old not in text:
+              raise SystemExit('child transfer function anchor not found')
+          p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Adult mode: same API routing.
+          p = Path('web/js/adult.js')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('transferInfo={enabled:false,baseUrl:""}', 'transferInfo={enabled:false,baseUrl:"",apiBaseUrl:""}', 1)
+          text = text.replace("fetch('/api/photo-sessions'", "apiFetch('/api/photo-sessions'")
+          text = text.replace('fetch(`/api/photo-sessions/', 'apiFetch(`/api/photo-sessions/')
+          text = text.replace("fetch('/api/shares'", "apiFetch('/api/shares'")
+          text = text.replace("img.src=`/api/qr?text=${encodeURIComponent(url)}&t=${Date.now()}`;", "img.src=apiUrl(`/api/qr?text=${encodeURIComponent(url)}&t=${Date.now()}`);")
+          old = '''  async function checkTransferServer(){try{const response=await fetch('/api/config',{cache:'no-store'});if(!response.ok)throw new Error();const data=await response.json();transferInfo={enabled:Boolean(data.enabled),baseUrl:String(data.baseUrl||'')};}catch(_){transferInfo={enabled:false,baseUrl:''};}return transferInfo.enabled;}\n  async function ensureTransferServer(){if(transferInfo.enabled||await checkTransferServer())return true;showToast('QR機能に接続できません。しばらくしてからもういちどためしてね');return false;}'''
+          new = '''  function configuredApiBase(){return String(window.WEB_FIRST_CRAFT_CONFIG?.apiBaseUrl||'').trim().replace(/\\/$/,'');}\n  function apiUrl(path){const base=transferInfo.apiBaseUrl||configuredApiBase();return `${base}${path}`;}\n  function apiFetch(path,options){return fetch(apiUrl(path),options);}\n  async function checkTransferServer(){const apiBaseUrl=configuredApiBase();try{const response=await fetch(`${apiBaseUrl}/api/config`,{cache:'no-store'});if(!response.ok)throw new Error();const data=await response.json();transferInfo={enabled:Boolean(data.enabled),baseUrl:String(data.baseUrl||''),apiBaseUrl};}catch(_){transferInfo={enabled:false,baseUrl:'',apiBaseUrl};}return transferInfo.enabled;}\n  async function ensureTransferServer(){if(transferInfo.enabled||await checkTransferServer())return true;showToast('QR機能に接続できません。公開サイトのQR API設定を確認してください');return false;}'''
+          if old not in text:
+              raise SystemExit('adult transfer function anchor not found')
+          p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Python server: serve runtime config and support browser CORS for a separate public frontend.
+          replace_once('server/app.py', '    "/adult.html": "adult.html",\n    "/css/main.css":', '    "/adult.html": "adult.html",\n    "/runtime-config.js": "runtime-config.js",\n    "/css/main.css":')
+          replace_once('server/app.py', '''def normalize_public_base_url(value: str) -> str:\n    value = str(value or "").strip()\n    if not value:\n        return ""\n    parsed = urlparse(value)\n    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:\n        raise ValueError("PUBLIC_BASE_URL must be an origin such as https://example.com")\n    if any(ch in parsed.netloc for ch in "\\r\\n"):\n        raise ValueError("invalid PUBLIC_BASE_URL")\n    return f"{parsed.scheme}://{parsed.netloc}"\n''', '''def normalize_public_base_url(value: str) -> str:\n    value = str(value or "").strip()\n    if not value:\n        return ""\n    parsed = urlparse(value)\n    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:\n        raise ValueError("PUBLIC_BASE_URL must be an origin such as https://example.com")\n    if any(ch in parsed.netloc for ch in "\\r\\n"):\n        raise ValueError("invalid PUBLIC_BASE_URL")\n    return f"{parsed.scheme}://{parsed.netloc}"\n\n\ndef parse_allowed_origins(value: str) -> set[str]:\n    result: set[str] = set()\n    for raw in str(value or "").split(","):\n        origin = raw.strip().rstrip("/")\n        if not origin:\n            continue\n        if origin == "*":\n            result.add("*")\n            continue\n        parsed = urlparse(origin)\n        if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:\n            raise ValueError(f"invalid ALLOWED_ORIGINS entry: {origin}")\n        result.add(f"{parsed.scheme}://{parsed.netloc}")\n    return result\n''')
+
+          replace_once('server/app.py', '''    @property\n    def transfer_mode(self) -> str:\n        return "public" if self.base_url.startswith("https://") else "local"\n\n    def send_bytes''', '''    @property\n    def transfer_mode(self) -> str:\n        return "public" if self.base_url.startswith("https://") else "local"\n\n    @property\n    def cors_origin(self) -> str:\n        origin = self.headers.get("Origin", "").strip().rstrip("/")\n        if not origin:\n            return ""\n        allowed = set(getattr(self.server, "allowed_origins", set()) or set())\n        if "*" in allowed:\n            return "*"\n        return origin if origin in allowed else ""\n\n    def send_bytes''')
+
+          replace_once('server/app.py', '''        self.send_header("X-Content-Type-Options", "nosniff")\n        self.send_header("Referrer-Policy", "no-referrer")\n        if headers:''', '''        self.send_header("X-Content-Type-Options", "nosniff")\n        self.send_header("Referrer-Policy", "no-referrer")\n        if urlparse(self.path).path.startswith("/api/"):\n            cors_origin = self.cors_origin\n            if cors_origin:\n                self.send_header("Access-Control-Allow-Origin", cors_origin)\n                if cors_origin != "*":\n                    self.send_header("Vary", "Origin")\n        if headers:''')
+
+          replace_once('server/app.py', '''    def do_HEAD(self) -> None:  # noqa: N802\n        self.do_GET()\n''', '''    def do_OPTIONS(self) -> None:  # noqa: N802\n        path = unquote(urlparse(self.path).path)\n        if not path.startswith("/api/"):\n            self.send_response(HTTPStatus.NOT_FOUND)\n            self.end_headers()\n            return\n        cors_origin = self.cors_origin\n        if not cors_origin:\n            self.send_response(HTTPStatus.FORBIDDEN)\n            self.end_headers()\n            return\n        self.send_response(HTTPStatus.NO_CONTENT)\n        self.send_header("Access-Control-Allow-Origin", cors_origin)\n        if cors_origin != "*":\n            self.send_header("Vary", "Origin")\n        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")\n        self.send_header("Access-Control-Allow-Headers", "Content-Type")\n        self.send_header("Access-Control-Max-Age", "600")\n        self.end_headers()\n\n    def do_HEAD(self) -> None:  # noqa: N802\n        self.do_GET()\n''')
+
+          replace_once('server/app.py', '''    parser.add_argument("--public-base-url", default=os.environ.get("PUBLIC_BASE_URL", ""), help="公開時にQRへ埋め込むURL（例: https://craft.example.com）")\n    args = parser.parse_args()\n    try:\n        public_base_url = normalize_public_base_url(args.public_base_url)\n    except ValueError as exc:\n        parser.error(str(exc))\n\n    server = ThreadingHTTPServer((args.host, args.port), KoboHandler)\n    server.lan_ip = get_lan_ip()  # type: ignore[attr-defined]\n    server.public_base_url = public_base_url  # type: ignore[attr-defined]\n''', '''    parser.add_argument("--public-base-url", default=os.environ.get("PUBLIC_BASE_URL", ""), help="公開時にQRへ埋め込むURL（例: https://craft.example.com）")\n    args = parser.parse_args()\n    try:\n        public_base_url = normalize_public_base_url(args.public_base_url)\n        allowed_origins = parse_allowed_origins(os.environ.get("ALLOWED_ORIGINS", ""))\n    except ValueError as exc:\n        parser.error(str(exc))\n\n    server = ThreadingHTTPServer((args.host, args.port), KoboHandler)\n    server.lan_ip = get_lan_ip()  # type: ignore[attr-defined]\n    server.public_base_url = public_base_url  # type: ignore[attr-defined]\n    server.allowed_origins = allowed_origins  # type: ignore[attr-defined]\n''')
+
+          # systemd persists the optional cross-origin frontend allowlist.
+          replace_once('scripts/systemd/install.sh', 'PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"\nROOT=', 'PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"\nALLOWED_ORIGINS="${ALLOWED_ORIGINS:-}"\nROOT=')
+          replace_once('scripts/systemd/install.sh', 'Environment=PUBLIC_BASE_URL=$PUBLIC_BASE_URL\nNoNewPrivileges=true', 'Environment=PUBLIC_BASE_URL=$PUBLIC_BASE_URL\nEnvironment=ALLOWED_ORIGINS=$ALLOWED_ORIGINS\nNoNewPrivileges=true')
+
+          # Static tests ensure runtime config is shipped and legacy same-origin-only calls are gone.
+          replace_once('tests/check_static.py', 'required=["server/app.py","web/css/main.css",', 'required=["server/app.py","web/runtime-config.js","web/css/main.css",')
+          replace_once('tests/check_static.py', '''    for js_path, text in ((WEB/"js/child.js", child), (WEB/"js/adult.js", adult)):\n        if "server.py" in text:\n            fail(f"{js_path.name}: legacy server.py QR guidance remains")\n''', '''    for js_path, text in ((WEB/"js/child.js", child), (WEB/"js/adult.js", adult)):\n        if "server.py" in text:\n            fail(f"{js_path.name}: legacy server.py QR guidance remains")\n        if 'fetch("/api/' in text or "fetch('/api/" in text or 'fetch(`/api/' in text:\n            fail(f"{js_path.name}: QR API fetch bypasses runtime-config.js")\n        if "configuredApiBase" not in text or "apiFetch" not in text:\n            fail(f"{js_path.name}: runtime API routing helper is missing")\n''')
+
+          # Integration test CORS and public URL behavior.
+          p = Path('tests/test_server.py')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('def request(base,path,payload=None):\n    data=None if payload is None else json.dumps(payload,ensure_ascii=False).encode("utf-8")\n    headers={"Content-Type":"application/json"} if data is not None else {}\n    return urlopen(Request(base+path,data=data,headers=headers),timeout=5)', 'def request(base,path,payload=None,headers=None,method=None):\n    data=None if payload is None else json.dumps(payload,ensure_ascii=False).encode("utf-8")\n    merged=dict(headers or {})\n    if data is not None: merged.setdefault("Content-Type","application/json")\n    return urlopen(Request(base+path,data=data,headers=merged,method=method),timeout=5)')
+          text = text.replace('httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1"', 'httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1";httpd.public_base_url="https://api.example.test";httpd.allowed_origins={"https://frontend.example.test"}')
+          text = text.replace('cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS', 'cfg=json.load(r);assert cfg["enabled"] is True and cfg["baseUrl"]=="https://api.example.test" and cfg["mode"]=="public" and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS')
+          anchor = '        for page in ("/","/child.html","/adult.html"):\n'
+          insertion = '''        with request(base,"/api/config",headers={"Origin":"https://frontend.example.test"}) as r:\n            assert r.headers.get("Access-Control-Allow-Origin")=="https://frontend.example.test"\n        with request(base,"/api/photo-sessions",headers={"Origin":"https://frontend.example.test","Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type"},method="OPTIONS") as r:\n            assert r.status==204 and r.headers.get("Access-Control-Allow-Origin")=="https://frontend.example.test"\n        for page in ("/","/child.html","/adult.html"):\n'''
+          if anchor not in text:
+              raise SystemExit('server test insertion anchor missing')
+          text = text.replace(anchor, insertion, 1)
+          text = text.replace('assert len(set(concurrent_tokens))==len(concurrent_tokens)', 'assert len(set(concurrent_tokens))==len(concurrent_tokens)\n        assert session["uploadUrl"].startswith("https://api.example.test/")')
+          p.write_text(text, encoding='utf-8')
+
+          # Documentation: Pages may use a separate public API service.
+          p = Path('docs/public-deployment.md')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('QRの写真転送・作品カード・完成HTML共有は `/api/...` を使うため、**GitHub Pagesのような静的ホスティングだけでは動きません**。`web/` と `server/app.py` を同じWebサービスとして公開してください。', 'QRの写真転送・作品カード・完成HTML共有は `/api/...` を使います。**最も簡単なのは `web/` と `server/app.py` を同じHTTPS Webサービスとして公開する構成**です。GitHub Pagesをフロントとして使う場合は、別途公開したQR APIサーバーへ接続する構成にも対応しています。')
+          text += '''\n\n## GitHub Pages + 別QR API\n\n1. `server/app.py` をHTTPSで公開し、`PUBLIC_BASE_URL=https://api.example.com` を設定します。\n2. APIサーバーにはPagesのOriginを許可します。例: `ALLOWED_ORIGINS=https://shimamotogit.github.io`。Originには `/web-first-craft` のようなパスは含めません。\n3. GitHubリポジトリの **Settings → Secrets and variables → Actions → Variables** で `PUBLIC_API_BASE_URL` を作り、値を `https://api.example.com` にします。\n4. `Deploy static site to Pages` workflowを手動実行します。デプロイ時に `web/runtime-config.js` へAPI URLが書き込まれます。\n\nこの構成では、ブラウザの `/api/...` リクエスト、QR画像、写真転送、カード共有、完成HTML共有がすべて `PUBLIC_API_BASE_URL` のサーバーへ送られます。\n'''
+          p.write_text(text, encoding='utf-8')
+
+          p = Path('README.md')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('GitHub Pagesは静的プレビュー用途で、QR転送バックエンドは動きません。', 'GitHub Pages単体ではQR転送バックエンドは動きませんが、`PUBLIC_API_BASE_URL` を設定すれば別の公開QR APIサーバーへ接続できます。')
+          text = text.replace('Pages版は静的プレビューのためQR機能は利用できません。QRを含む公開版はPythonサーバーまたはDockerごとデプロイしてください。', 'Pages版でも、Actions変数 `PUBLIC_API_BASE_URL` に公開済みのPython APIサーバーURLを設定すればQR機能を利用できます。API側では `ALLOWED_ORIGINS` にPagesのOriginを設定してください。同一ドメインでPythonサーバーまたはDockerごと公開する構成が最も簡単です。')
+          p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check web/js/child.js
+          node --check web/js/adult.js
+          node --check web/runtime-config.js
+          python3 -m py_compile server/app.py tests/check_static.py tests/test_server.py
+          python3 tests/check_static.py
+          python3 tests/test_server.py
+          bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
+          CHECK_ONLY=1 bash scripts/systemd/install.sh
+
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/child.html web/adult.html web/index.html web/js/child.js web/js/adult.js server/app.py scripts/systemd/install.sh tests/check_static.py tests/test_server.py README.md docs/public-deployment.md
+          git commit -m "Support Pages with separate QR API"
+          git push origin HEAD:main
