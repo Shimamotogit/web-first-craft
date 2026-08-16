@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Integration checks for LAN QR/photo/HTML/card transfer using stdlib only."""
 from __future__ import annotations
-import base64, json, sys, threading
+import base64, json, re, sys, threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote, urlparse
 from urllib.request import Request, urlopen
@@ -26,10 +27,25 @@ def main():
             qr=r.read();assert r.headers.get_content_type()=="image/svg+xml" and b"<svg" in qr
         with request(base,"/api/photo-sessions",{}) as r: session=json.load(r)
         token=session["token"]
-        with request(base,f"/phone/photo/{token}") as r: assert 'capture="user"' in r.read().decode()
+        with request(base,f"/phone/photo/{token}") as r:
+            phone_page=r.read().decode()
+            gallery_tag=re.search(r'<input id="photo"[^>]*>',phone_page).group(0)
+            camera_tag=re.search(r'<input id="cameraPhoto"[^>]*>',phone_page).group(0)
+            assert "capture=" not in gallery_tag and 'capture="user"' in camera_tag
         photo="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2mGQAAAAASUVORK5CYII="
         with request(base,f"/api/photo-sessions/{token}/photo",{"photo":photo}) as r: assert json.load(r)["ok"] is True
         with request(base,f"/api/photo-sessions/{token}") as r: assert json.load(r)["status"]=="received"
+
+        # Multiple PCs/users: tokens are unique and one user cannot consume another user's photo.
+        def create_photo_session(_):
+            with request(base,"/api/photo-sessions",{}) as r: return json.load(r)["token"]
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            concurrent_tokens=list(pool.map(create_photo_session,range(8)))
+        assert len(set(concurrent_tokens))==len(concurrent_tokens)
+        token_a,token_b=concurrent_tokens[:2]
+        with request(base,f"/api/photo-sessions/{token_a}/photo",{"photo":photo}) as r: assert json.load(r)["ok"] is True
+        with request(base,f"/api/photo-sessions/{token_b}") as r: assert json.load(r)["status"]=="waiting"
+        with request(base,f"/api/photo-sessions/{token_a}") as r: assert json.load(r)["status"]=="received"
         markup='<!doctype html><html lang="ja"><body><h1>test</h1></body></html>'
         with request(base,"/api/shares",{"html":markup,"filename":"test.html","nickname":"test"}) as r: share=json.load(r)
         st=urlparse(share["shareUrl"]).path.split("/")[-1]
@@ -41,7 +57,7 @@ def main():
         with request(base,f"/card/{ct}") as r: landing=r.read().decode();assert "画像を保存する" in landing
         with request(base,f"/api/cards/{ct}/view") as r: assert r.headers.get_content_type()=="image/png" and r.read().startswith(b"\x89PNG")
         with request(base,f"/api/cards/{ct}/download") as r: assert "attachment" in r.headers.get("Content-Disposition","")
-        print("OK: static pages, QR, phone photo, HTML share, PNG card share")
+        print("OK: static pages, QR, gallery/camera photo, concurrent isolated sessions, HTML share, PNG card share")
     finally:
         httpd.shutdown();httpd.server_close();thread.join(timeout=3)
 if __name__=="__main__": main()

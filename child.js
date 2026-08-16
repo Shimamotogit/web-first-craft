@@ -185,7 +185,7 @@
     const defs=`<defs><clipPath id="photoClip" clipPathUnits="objectBoundingBox">${photoClipShape(state.frame)}</clipPath><pattern id="checks" width="56" height="56" patternUnits="userSpaceOnUse"><rect width="28" height="28" fill="${p.accent2}" opacity=".25"/><rect x="28" y="28" width="28" height="28" fill="${p.accent2}" opacity=".25"/></pattern></defs>`;
     const photoNode=photo?`<image href="${escAttr(photo)}" x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"/>`:`<rect width="100%" height="100%" fill="#fff"/><text x="50%" y="58%" text-anchor="middle" font-size="128">${esc(state.avatar)}</text>`;
     let content=state.layout==="storybook"?layoutStorybook(name,phrase,favorites,photoNode,p,sticker):state.layout==="stripe"?layoutNotebook(name,phrase,favorites,photoNode,p,sticker):state.layout==="poster"?layoutPoster(name,phrase,favorites,photoNode,p,sticker):layoutBig(name,phrase,favorites,photoNode,p,sticker);
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">${defs}<rect width="900" height="1200" fill="${p.bg}"/>${patternSvg(state.pattern,p)}${content}${decorSvg(state.decor,p)}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">${defs}<rect width="900" height="1200" fill="${p.bg}"/>${patternSvg(state.pattern,p)}${decorSvg(state.decor,p)}${content}</svg>`;
   }
 
   function photoGroup(x,y,size,p,rotate=0){const o=photoContentOffset(state.frame,size);return `<g transform="translate(${x} ${y}) rotate(${rotate} ${size/2} ${size/2})">${frameSvg(state.frame,size,p)}<g clip-path="url(#photoClip)" transform="translate(${o.x} ${o.y})"><svg width="${o.size}" height="${o.size}">${currentPhotoNode}</svg></g></g>`;}
