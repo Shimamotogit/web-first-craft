@@ -19,8 +19,8 @@ jobs:
 
       - name: Restore single-server public architecture
         run: |
+          # pages.yml is already restored directly through GitHub API.
           git checkout 8d897d09624eed7b9678461b154ddef27925683e -- \
-            .github/workflows/pages.yml \
             README.md \
             docs/public-deployment.md \
             scripts/systemd/install.sh \
