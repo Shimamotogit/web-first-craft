@@ -85,19 +85,14 @@
     <p>ブラウザで使える、小さなWeb制作体験ツール。</p>
   </footer>
 
-  <script src="runtime-config.js"></script>
   <script>
-    const apiBase=String(window.WEB_FIRST_CRAFT_CONFIG?.apiBaseUrl||'').trim().replace(/\/$/,'');
-    fetch(`${apiBase}/api/config`,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(data=>{
+    fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{
       const chip=document.getElementById('lanChip');
-      if(data.enabled){
-        chip.classList.add('ready');
-        chip.innerHTML=`<span></span> ${data.mode==='public'?'公開QRモード':'QR機能'}：利用できます`;
-      }
+      if(data.enabled){chip.classList.add('ready');chip.innerHTML=data.mode==='public'?'<span></span> 公開モード：QR機能が使えます':'<span></span> QRサーバー接続済み：QR機能が使えます';}
     }).catch(()=>{
       const chip=document.getElementById('lanChip');
       chip.classList.remove('ready');
-      chip.innerHTML=apiBase?'<span></span> QR APIに接続できません':'<span></span> QRバックエンド未設定';
+      chip.innerHTML='<span></span> 静的版：QR機能にはサーバーが必要です';
     });
   </script>
 </body>

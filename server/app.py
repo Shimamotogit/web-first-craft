@@ -47,7 +47,6 @@ SAFE_STATIC = {
     "/index.html": "index.html",
     "/child.html": "child.html",
     "/adult.html": "adult.html",
-    "/runtime-config.js": "runtime-config.js",
     "/css/main.css": "css/main.css",
     "/css/child.css": "css/child.css",
     "/css/adult.css": "css/adult.css",
@@ -164,22 +163,6 @@ def normalize_public_base_url(value: str) -> str:
     return f"{parsed.scheme}://{parsed.netloc}"
 
 
-def parse_allowed_origins(value: str) -> set[str]:
-    result: set[str] = set()
-    for raw in str(value or "").split(","):
-        origin = raw.strip().rstrip("/")
-        if not origin:
-            continue
-        if origin == "*":
-            result.add("*")
-            continue
-        parsed = urlparse(origin)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:
-            raise ValueError(f"invalid ALLOWED_ORIGINS entry: {origin}")
-        result.add(f"{parsed.scheme}://{parsed.netloc}")
-    return result
-
-
 def safe_host_header(value: str) -> bool:
     return bool(value) and len(value) <= 255 and bool(re.fullmatch(r"[A-Za-z0-9.\-:\[\]]+", value))
 
@@ -266,28 +249,12 @@ class KoboHandler(BaseHTTPRequestHandler):
     def transfer_mode(self) -> str:
         return "public" if self.base_url.startswith("https://") else "local"
 
-    @property
-    def cors_origin(self) -> str:
-        origin = self.headers.get("Origin", "").strip().rstrip("/")
-        if not origin:
-            return ""
-        allowed = set(getattr(self.server, "allowed_origins", set()) or set())
-        if "*" in allowed:
-            return "*"
-        return origin if origin in allowed else ""
-
     def send_bytes(self, body: bytes, content_type: str, status: int = 200, headers: dict | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
-        if urlparse(self.path).path.startswith("/api/"):
-            cors_origin = self.cors_origin
-            if cors_origin:
-                self.send_header("Access-Control-Allow-Origin", cors_origin)
-                if cors_origin != "*":
-                    self.send_header("Vary", "Origin")
         if headers:
             for key, value in headers.items():
                 self.send_header(key, value)
@@ -316,26 +283,6 @@ class KoboHandler(BaseHTTPRequestHandler):
         if not isinstance(parsed, dict):
             raise ValueError("bad-json")
         return parsed
-
-    def do_OPTIONS(self) -> None:  # noqa: N802
-        path = unquote(urlparse(self.path).path)
-        if not path.startswith("/api/"):
-            self.send_response(HTTPStatus.NOT_FOUND)
-            self.end_headers()
-            return
-        cors_origin = self.cors_origin
-        if not cors_origin:
-            self.send_response(HTTPStatus.FORBIDDEN)
-            self.end_headers()
-            return
-        self.send_response(HTTPStatus.NO_CONTENT)
-        self.send_header("Access-Control-Allow-Origin", cors_origin)
-        if cors_origin != "*":
-            self.send_header("Vary", "Origin")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Max-Age", "600")
-        self.end_headers()
 
     def do_HEAD(self) -> None:  # noqa: N802
         self.do_GET()
@@ -583,14 +530,12 @@ def main() -> None:
     args = parser.parse_args()
     try:
         public_base_url = normalize_public_base_url(args.public_base_url)
-        allowed_origins = parse_allowed_origins(os.environ.get("ALLOWED_ORIGINS", ""))
     except ValueError as exc:
         parser.error(str(exc))
 
     server = ThreadingHTTPServer((args.host, args.port), KoboHandler)
     server.lan_ip = get_lan_ip()  # type: ignore[attr-defined]
     server.public_base_url = public_base_url  # type: ignore[attr-defined]
-    server.allowed_origins = allowed_origins  # type: ignore[attr-defined]
     local_url = f"http://localhost:{server.server_port}"
     lan_url = f"http://{server.lan_ip}:{server.server_port}"  # type: ignore[attr-defined]
     print("\nじぶんページ工房を起動しました。")

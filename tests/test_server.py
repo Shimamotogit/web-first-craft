@@ -12,15 +12,14 @@ SERVER_DIR=ROOT/"server"
 sys.path.insert(0,str(SERVER_DIR))
 import app as kobo  # noqa:E402
 
-def request(base,path,payload=None,headers=None,method=None):
+def request(base,path,payload=None):
     data=None if payload is None else json.dumps(payload,ensure_ascii=False).encode("utf-8")
-    merged=dict(headers or {})
-    if data is not None: merged.setdefault("Content-Type","application/json")
-    return urlopen(Request(base+path,data=data,headers=merged,method=method),timeout=5)
+    headers={"Content-Type":"application/json"} if data is not None else {}
+    return urlopen(Request(base+path,data=data,headers=headers),timeout=5)
 
 def main():
     kobo.photo_sessions.clear();kobo.share_sessions.clear();kobo.card_sessions.clear();kobo.session_create_times.clear()
-    httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1";httpd.public_base_url="";httpd.allowed_origins={"https://frontend.example.test"}
+    httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1";httpd.public_base_url=""
     thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start();base=f"http://127.0.0.1:{httpd.server_port}"
     try:
         with request(base,"/api/config") as r:
@@ -33,10 +32,6 @@ def main():
         with request(base,"/api/photo-sessions",{}) as r:
             public_session=json.load(r);assert public_session["uploadUrl"].startswith("https://public.example.test/phone/photo/")
         httpd.public_base_url=""
-        with request(base,"/api/config",headers={"Origin":"https://frontend.example.test"}) as r:
-            assert r.headers.get("Access-Control-Allow-Origin")=="https://frontend.example.test"
-        with request(base,"/api/photo-sessions",headers={"Origin":"https://frontend.example.test","Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type"},method="OPTIONS") as r:
-            assert r.status==204 and r.headers.get("Access-Control-Allow-Origin")=="https://frontend.example.test"
         for page in ("/","/child.html","/adult.html"):
             with request(base,page) as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()
         for asset in ("/css/main.css","/css/child.css","/css/adult.css","/js/child.js","/js/adult.js"):

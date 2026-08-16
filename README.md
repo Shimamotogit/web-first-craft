@@ -102,7 +102,7 @@ Ubuntuのsystemdでは次のように登録できます。
 PUBLIC_BASE_URL=https://craft.example.com bash scripts/systemd/install.sh
 ```
 
-Dockerにも対応しています。公開時はHTTPSを使用し、詳しい構成は [`docs/public-deployment.md`](./docs/public-deployment.md) を参照してください。GitHub Pages単体ではQR転送バックエンドは動きませんが、`PUBLIC_API_BASE_URL` を設定すれば別の公開QR APIサーバーへ接続できます。
+Dockerにも対応しています。公開時はHTTPSを使用し、詳しい構成は [`docs/public-deployment.md`](./docs/public-deployment.md) を参照してください。GitHub Pagesは静的プレビュー用途で、QR転送バックエンドは動きません。
 
 ## 複数PC・複数人での同時利用
 
@@ -179,7 +179,7 @@ web-first-craft/
 └── LICENSE
 ```
 
-`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。GitHub Pagesのデプロイは自動実行せず、Pagesを有効化した場合だけActionsから手動実行します。Pages版でも、Actions変数 `PUBLIC_API_BASE_URL` に公開済みのPython APIサーバーURLを設定すればQR機能を利用できます。API側では `ALLOWED_ORIGINS` にPagesのOriginを設定してください。同一ドメインでPythonサーバーまたはDockerごと公開する構成が最も簡単です。
+`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。GitHub Pagesのデプロイは自動実行せず、Pagesを有効化した場合だけActionsから手動実行します。Pages版は静的プレビューのためQR機能は利用できません。QRを含む公開版はPythonサーバーまたはDockerごとデプロイしてください。
 
 ## ライセンス
 
