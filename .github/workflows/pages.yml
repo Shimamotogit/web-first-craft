@@ -21,6 +21,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Configure public QR API
+        env:
+          PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          value = os.environ.get("PUBLIC_API_BASE_URL", "").strip().rstrip("/")
+          Path("web/runtime-config.js").write_text(
+              "window.WEB_FIRST_CRAFT_CONFIG = Object.freeze({\n"
+              f"  apiBaseUrl: {json.dumps(value)}\n"
+              "});\n",
+              encoding="utf-8",
+          )
+          if value:
+              print(f"QR API: {value}")
+          else:
+              print("PUBLIC_API_BASE_URL is empty: Pages will run without QR transfer API")
+          PY
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static files
