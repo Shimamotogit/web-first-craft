@@ -15,15 +15,15 @@ jobs:
         uses: actions/checkout@v6
       - name: Check JavaScript syntax
         run: |
-          node --check child.js
-          node --check adult.js
+          node --check web/js/child.js
+          node --check web/js/adult.js
       - name: Check static structure and privacy boundaries
-        run: python3 scripts/check_static.py
+        run: python3 tests/check_static.py
       - name: Check Python syntax
-        run: python3 -m py_compile server.py scripts/test_server.py
-      - name: Check Ubuntu service scripts
+        run: python3 -m py_compile server/app.py tests/test_server.py tests/check_static.py
+      - name: Check launch and Ubuntu service scripts
         run: |
-          bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh
-          CHECK_ONLY=1 bash scripts/install-ubuntu-service.sh
+          bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
+          CHECK_ONLY=1 bash scripts/systemd/install.sh
       - name: Test LAN transfer server
-        run: python3 scripts/test_server.py
+        run: python3 tests/test_server.py
