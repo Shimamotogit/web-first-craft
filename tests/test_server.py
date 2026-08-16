@@ -36,6 +36,7 @@ def main():
             gallery_tag=re.search(r'<input id="photo"[^>]*>',phone_page).group(0)
             camera_tag=re.search(r'<input id="cameraPhoto"[^>]*>',phone_page).group(0)
             assert "capture=" not in gallery_tag and 'capture="user"' in camera_tag
+            assert 'id="back"' in phone_page and '← もどる' in phone_page and "history.back()" in phone_page
         photo="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2mGQAAAAASUVORK5CYII="
         with request(base,f"/api/photo-sessions/{token}/photo",{"photo":photo}) as r: assert json.load(r)["ok"] is True
         with request(base,f"/api/photo-sessions/{token}") as r: assert json.load(r)["status"]=="received"
