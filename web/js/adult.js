@@ -2,7 +2,8 @@
   "use strict";
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const STORAGE_KEY="jibun-page-kobo-adult-v3";
-  const APP_BASE=new URL(".",window.location.href);
+  const SCRIPT_URL=document.currentScript?.src||new URL("js/adult.js",window.location.href).toString();
+  const APP_BASE=new URL("../",SCRIPT_URL);
   const appUrl=path=>new URL(String(path).replace(/^\/+/,""),APP_BASE).toString();
   const defaults={
     name:"",tagline:"",intro:"",favorites:["","",""],extraTitle:"",extraText:"",photo:"",

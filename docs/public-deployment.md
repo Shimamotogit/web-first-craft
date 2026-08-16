@@ -99,6 +99,9 @@ location = /my-site {
 }
 
 location ^~ /my-site/ {
+    # 写真・カード送信をNginx側で小さすぎる上限に止められないようにする。
+    client_max_body_size 4m;
+
     proxy_pass http://127.0.0.1:4173;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -106,4 +109,4 @@ location ^~ /my-site/ {
 }
 ```
 
-`proxy_pass` のURL末尾に `/` を付けないでください。設定後は `https://zovira.jp/my-site/api/config` で確認できます。
+`proxy_pass` のURL末尾に `/` を付けないでください。設定後は `https://zovira.jp/my-site/api/config` で確認できます。`/web-first-craft/` で公開する場合は、同じ設定の `/my-site` を `/web-first-craft` に置き換えてください。

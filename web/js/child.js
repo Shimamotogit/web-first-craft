@@ -4,7 +4,8 @@
   const $ = (s, root = document) => root.querySelector(s);
   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
   const STORAGE_KEY = "jibun-page-kobo-child-v3";
-  const APP_BASE = new URL(".", window.location.href);
+  const SCRIPT_URL = document.currentScript?.src || new URL("js/child.js", window.location.href).toString();
+  const APP_BASE = new URL("../", SCRIPT_URL);
   const appUrl = path => new URL(String(path).replace(/^\/+/, ""), APP_BASE).toString();
 
   const defaults = {

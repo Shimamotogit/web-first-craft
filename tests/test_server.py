@@ -44,7 +44,11 @@ def main():
             sub_session=json.load(r);assert sub_session["uploadUrl"].startswith("https://zovira.jp/my-site/phone/photo/")
         sub_token=sub_session["token"]
         with request(base,f"/my-site/phone/photo/{sub_token}") as r:
-            sub_phone=r.read().decode();assert 'const basePath="/my-site"' in sub_phone
+            sub_phone=r.read().decode();assert 'const basePath="/my-site"' in sub_phone and "MAX_TRANSFER_DATA_URL=850000" in sub_phone
+        sub_photo="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2mGQAAAAASUVORK5CYII="
+        with request(base,f"/my-site/api/photo-sessions/{sub_token}/photo",{"photo":sub_photo}) as r: assert json.load(r)["ok"] is True
+        with request(base,f"/my-site/api/photo-sessions/{sub_token}") as r:
+            received=json.load(r);assert received["status"]=="received" and received["photo"]==sub_photo
         with request(base,"/my-site/") as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()
         httpd.public_base_url=""
         for page in ("/","/child.html","/adult.html"):
