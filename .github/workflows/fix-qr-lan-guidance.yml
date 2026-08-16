@@ -41,19 +41,6 @@ jobs:
               if 'server.py' in text:
                   raise SystemExit(f'legacy server.py guidance remains in {path}')
               path.write_text(text, encoding='utf-8')
-
-          test = Path('tests/check_static.py')
-          text = test.read_text(encoding='utf-8')
-          anchor = '    adult=(WEB_ROOT/"js"/"adult.js").read_text(encoding="utf-8")\n'
-          if anchor not in text:
-              raise SystemExit('check_static anchor not found')
-          addition = (
-              '    for js_path in (WEB_ROOT/"js"/"child.js", WEB_ROOT/"js"/"adult.js"):\n'
-              '        if "server.py" in js_path.read_text(encoding="utf-8"):\n'
-              '            fail(f"{js_path.name}: legacy server.py QR guidance remains")\n'
-          )
-          text = text.replace(anchor, anchor + addition, 1)
-          test.write_text(text, encoding='utf-8')
           PY
       - name: Validate
         run: |
@@ -66,6 +53,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/js/child.js web/js/adult.js tests/check_static.py
+          git add web/js/child.js web/js/adult.js
           git commit -m "Fix QR guidance for systemd LAN server"
           git push origin HEAD:main
