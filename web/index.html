@@ -86,7 +86,7 @@
   </footer>
 
   <script>
-    fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{
+    fetch(new URL('api/config',window.location.href)).then(r=>r.ok?r.json():Promise.reject()).then(data=>{
       const chip=document.getElementById('lanChip');
       if(data.enabled){chip.classList.add('ready');chip.innerHTML=data.mode==='public'?'<span></span> 公開モード：QR機能が使えます':'<span></span> QRサーバー接続済み：QR機能が使えます';}
     }).catch(()=>{

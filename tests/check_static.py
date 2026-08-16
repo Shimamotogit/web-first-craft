@@ -59,6 +59,9 @@ def main() -> None:
 
     child=(WEB/"js/child.js").read_text(encoding="utf-8")
     adult=(WEB/"js/adult.js").read_text(encoding="utf-8")
+    for name, source in (("child.js", child), ("adult.js", adult)):
+        if re.search(r"(?:fetch\(|img\.src=)`?[\"']?/api/", source):
+            fail(f"{name}: root-absolute API path breaks subpath hosting")
     for js_path, text in ((WEB/"js/child.js", child), (WEB/"js/adult.js", adult)):
         if "server.py" in text:
             fail(f"{js_path.name}: legacy server.py QR guidance remains")
@@ -73,7 +76,7 @@ def main() -> None:
     pages=(ROOT/".github/workflows/pages.yml").read_text(encoding="utf-8")
     if "\n  push:" in pages:
         fail("pages.yml: Pages deployment must be manual unless Pages is explicitly enabled")
-    if "buildKidHtml" not in child or "drawCard" not in child or "/api/cards" not in child:
+    if "buildKidHtml" not in child or "drawCard" not in child or "api/cards" not in child:
         fail("child mode core build/card functions are missing")
     child_html=(WEB/"child.html").read_text(encoding="utf-8")
     for marker in ("kidPhonePhotoButton", "toggleKanaButton", "kidFrames", "kidStickers", "kidPatterns", "inputMethodButtons"):
@@ -87,7 +90,7 @@ def main() -> None:
         fail("child preview/export paths must share buildKidSvg()")
     if "data-motion=" in child_html or "data-magic=" in child_html:
         fail("child final-card workflow must not expose animation choices")
-    if "buildHtml" not in adult or "function score" not in adult or "/api/shares" not in adult:
+    if "buildHtml" not in adult or "function score" not in adult or "api/shares" not in adult:
         fail("adult mode core build/score/share functions are missing")
     adult_html=(WEB/"adult.html").read_text(encoding="utf-8")
     for marker in ("pageWidth", "headingSize", "backgroundR", "backgroundG", "backgroundB", "jsReveal", "jsRoulette", "jsPhotoZoom"):

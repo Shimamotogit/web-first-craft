@@ -102,6 +102,8 @@ Ubuntuのsystemdでは次のように登録できます。
 PUBLIC_BASE_URL=https://craft.example.com bash scripts/systemd/install.sh
 ```
 
+`https://zovira.jp/my-site/` のようなサブパス公開にも対応しています。その場合は `PUBLIC_BASE_URL=https://zovira.jp/my-site` を指定し、Nginxで `/my-site/` をプレフィックスを保持したまま4173番へ転送します。
+
 Dockerにも対応しています。公開時はHTTPSを使用し、詳しい構成は [`docs/public-deployment.md`](./docs/public-deployment.md) を参照してください。GitHub Pagesは静的プレビュー用途で、QR転送バックエンドは動きません。
 
 ## 複数PC・複数人での同時利用

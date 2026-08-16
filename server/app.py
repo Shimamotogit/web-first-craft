@@ -156,11 +156,16 @@ def normalize_public_base_url(value: str) -> str:
     if not value:
         return ""
     parsed = urlparse(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:
-        raise ValueError("PUBLIC_BASE_URL must be an origin such as https://example.com")
-    if any(ch in parsed.netloc for ch in "\r\n"):
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.params or parsed.query or parsed.fragment:
+        raise ValueError("PUBLIC_BASE_URL must be a URL such as https://example.com or https://example.com/my-site")
+    if parsed.username or parsed.password or any(ch in parsed.netloc for ch in "\r\n"):
         raise ValueError("invalid PUBLIC_BASE_URL")
-    return f"{parsed.scheme}://{parsed.netloc}"
+    path = parsed.path.rstrip("/")
+    if path:
+        segments = path.split("/")[1:]
+        if not segments or any(segment in {"", ".", ".."} or not re.fullmatch(r"[A-Za-z0-9._~-]+", segment) for segment in segments):
+            raise ValueError("PUBLIC_BASE_URL path must contain only safe path segments such as /my-site")
+    return f"{parsed.scheme}://{parsed.netloc}{path}"
 
 
 def safe_host_header(value: str) -> bool:
@@ -175,9 +180,10 @@ def is_local_host_header(value: str) -> bool:
     return hostname in {"localhost", "127.0.0.1", "::1"}
 
 
-def phone_upload_page(token: str, expires_at: float) -> str:
+def phone_upload_page(token: str, expires_at: float, base_path: str = "") -> str:
     remaining = max(1, int((expires_at - now()) / 60))
     token_json = json.dumps(token)
+    base_path_json = json.dumps(base_path)
     return f"""<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f4c95d"><title>写真を送る｜じぶんページ工房</title>
@@ -189,35 +195,37 @@ def phone_upload_page(token: str, expires_at: float) -> str:
 <img id="preview" alt="選んだ写真" hidden><button id="send" type="button" disabled>この写真を送る</button>
 <p id="status" role="status" aria-live="polite"></p><small>顔、名札、制服、家のまわりが写っていないか、おうちの人・先生と確認してください。</small></main>
 <script>
-const token={token_json};const back=document.getElementById('back');const input=document.getElementById('photo');const cameraInput=document.getElementById('cameraPhoto');const preview=document.getElementById('preview');const send=document.getElementById('send');const status=document.getElementById('status');let photo='';
+const token={token_json};const basePath={base_path_json};const back=document.getElementById('back');const input=document.getElementById('photo');const cameraInput=document.getElementById('cameraPhoto');const preview=document.getElementById('preview');const send=document.getElementById('send');const status=document.getElementById('status');let photo='';
 back.addEventListener('click',()=>{{if(window.history.length>1){{window.history.back();return;}}window.close();setTimeout(()=>{{back.textContent='このタブを閉じてください';}},150);}});
 async function choosePhoto(source){{const file=source.files&&source.files[0];if(!file)return;if(!/^image\\/(png|jpeg|webp)$/i.test(file.type)||file.size>12*1024*1024){{status.textContent='12MB以下のPNG・JPEG・WebPをえらんでください。';source.value='';return}}status.textContent='写真を小さくしています…';try{{photo=await resize(file,900,.84);preview.src=photo;preview.hidden=false;send.disabled=false;status.textContent='送る準備ができました。'}}catch(e){{status.textContent='写真を読みこめませんでした。'}}}}
 input.addEventListener('change',()=>choosePhoto(input));cameraInput.addEventListener('change',()=>choosePhoto(cameraInput));
-send.addEventListener('click',async()=>{{if(!photo)return;send.disabled=true;status.textContent='パソコンへ送っています…';try{{const response=await fetch('/api/photo-sessions/'+encodeURIComponent(token)+'/photo',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{photo}})}});const data=await response.json();if(!response.ok)throw new Error(data.error||'failed');status.textContent='送りました。パソコンの画面を見てください。';input.disabled=true;cameraInput.disabled=true;}}catch(e){{send.disabled=false;status.textContent='送れませんでした。QRコードを作り直してください。'}}}});
+send.addEventListener('click',async()=>{{if(!photo)return;send.disabled=true;status.textContent='パソコンへ送っています…';try{{const response=await fetch(basePath+'/api/photo-sessions/'+encodeURIComponent(token)+'/photo',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{photo}})}});const data=await response.json();if(!response.ok)throw new Error(data.error||'failed');status.textContent='送りました。パソコンの画面を見てください。';input.disabled=true;cameraInput.disabled=true;}}catch(e){{send.disabled=false;status.textContent='送れませんでした。QRコードを作り直してください。'}}}});
 function resize(file,max,quality){{return new Promise((resolve,reject)=>{{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{{const image=new Image();image.onerror=reject;image.onload=()=>{{const scale=Math.min(1,max/Math.max(image.width,image.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));const context=canvas.getContext('2d',{{alpha:false}});context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(image,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',quality));}};image.src=String(reader.result)}};reader.readAsDataURL(file)}})}}
 </script></body></html>"""
 
 
-def share_landing_page(token: str, item: dict) -> str:
+def share_landing_page(token: str, item: dict, base_path: str = "") -> str:
     filename = html.escape(item["filename"])
+    path_prefix = html.escape(base_path, quote=True)
     nickname = html.escape(item.get("nickname") or "じぶんページ")
     return f"""<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f4c95d"><title>{nickname}を受け取る</title>
 <style>*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;color:#2d2a26;background:#e6dccb;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;line-height:1.7}}main{{width:min(560px,100%);padding:30px;background:#fffdf7;border:3px solid #2d2a26;border-radius:16px 22px 14px 19px;box-shadow:8px 9px 0 rgba(45,42,38,.18)}}h1{{margin:.1em 0}}.kicker{{margin:0;color:#a8382b;font-weight:900;letter-spacing:.12em}}.actions{{display:grid;gap:12px;margin-top:24px}}a{{display:grid;place-items:center;min-height:54px;padding:10px 16px;color:#2d2a26;background:#fff;border:2px solid #2d2a26;border-radius:10px;text-align:center;text-decoration:none;font-weight:900}}a.primary{{color:#fff;background:#2d2a26}}.note{{margin-top:22px;padding:12px;background:#fff4ca;border-left:5px solid #d2a52c}}code{{word-break:break-all}}</style></head>
 <body><main><p class="kicker">TEMPORARY SHARE</p><h1>{nickname}を受け取る</h1><p>作成画面から、一時的に共有されています。</p>
-<div class="actions"><a class="primary" href="/api/shares/{quote(token)}/download">HTMLをこの端末に保存</a><a href="/api/shares/{quote(token)}/view" target="_blank" rel="noopener">まずページを開いて見る</a></div>
+<div class="actions"><a class="primary" href="{path_prefix}/api/shares/{quote(token)}/download">HTMLをこの端末に保存</a><a href="{path_prefix}/api/shares/{quote(token)}/view" target="_blank" rel="noopener">まずページを開いて見る</a></div>
 <p class="note"><strong>ファイル名：</strong> <code>{filename}</code><br>この共有URLは約30分で使えなくなります。</p></main></body></html>"""
 
 
-def card_landing_page(token: str, item: dict) -> str:
+def card_landing_page(token: str, item: dict, base_path: str = "") -> str:
     title = html.escape(item.get("title") or "作品カード")
     filename = html.escape(item["filename"])
+    path_prefix = html.escape(base_path, quote=True)
     return f"""<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffd45a"><title>{title}を受け取る</title>
 <style>*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px;color:#322f28;background:#efe6d6;font-family:"Hiragino Maru Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;line-height:1.6}}main{{width:min(580px,100%);padding:24px;background:#fffdf7;border:3px solid #322f28;border-radius:18px 26px 16px 22px;box-shadow:8px 9px 0 rgba(50,47,40,.16);text-align:center}}h1{{margin:.2em 0}}.kicker{{margin:0;color:#b14f45;font-weight:900;letter-spacing:.12em}}img{{display:block;width:min(360px,100%);height:auto;margin:18px auto;border:2px solid #322f28}}a{{display:grid;place-items:center;min-height:54px;padding:10px 16px;color:#fff;background:#322f28;border:2px solid #322f28;border-radius:11px;text-decoration:none;font-weight:900}}.note{{margin:16px 0 0;padding:10px;background:#fff1ad;text-align:left;font-size:.8rem}}code{{word-break:break-all}}</style></head>
-<body><main><p class="kicker">MY PAGE CARD</p><h1>{title}</h1><p>つくったページを、1まいのカードにしました。</p><img src="/api/cards/{quote(token)}/view" alt="{title}"><a href="/api/cards/{quote(token)}/download">画像を保存する</a><p class="note"><strong>ファイル名：</strong> <code>{filename}</code><br>このQRは約30分で使えなくなります。</p></main></body></html>"""
+<body><main><p class="kicker">MY PAGE CARD</p><h1>{title}</h1><p>つくったページを、1まいのカードにしました。</p><img src="{path_prefix}/api/cards/{quote(token)}/view" alt="{title}"><a href="{path_prefix}/api/cards/{quote(token)}/download">画像を保存する</a><p class="note"><strong>ファイル名：</strong> <code>{filename}</code><br>このQRは約30分で使えなくなります。</p></main></body></html>"""
 
 
 class KoboHandler(BaseHTTPRequestHandler):
@@ -248,6 +256,21 @@ class KoboHandler(BaseHTTPRequestHandler):
     @property
     def transfer_mode(self) -> str:
         return "public" if self.base_url.startswith("https://") else "local"
+
+    @property
+    def public_path_prefix(self) -> str:
+        configured = str(getattr(self.server, "public_base_url", "") or "")
+        return urlparse(configured).path.rstrip("/") if configured else ""
+
+    def routed_path(self) -> str:
+        path = unquote(urlparse(self.path).path)
+        prefix = self.public_path_prefix
+        if prefix:
+            if path == prefix:
+                return "/"
+            if path.startswith(prefix + "/"):
+                return path[len(prefix):]
+        return path
 
     def send_bytes(self, body: bytes, content_type: str, status: int = 200, headers: dict | None = None) -> None:
         self.send_response(status)
@@ -290,7 +313,7 @@ class KoboHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         cleanup_expired()
         parsed = urlparse(self.path)
-        path = unquote(parsed.path)
+        path = self.routed_path()
 
         if path == "/healthz":
             self.send_json({"ok": True})
@@ -334,7 +357,7 @@ class KoboHandler(BaseHTTPRequestHandler):
             if not item or item["expires_at"] <= now():
                 self.send_html("<h1>このQRコードは時間切れです</h1><p>パソコンで作り直してください。</p>", HTTPStatus.GONE)
                 return
-            self.send_html(phone_upload_page(token, item["expires_at"]), extra_headers={"Content-Security-Policy": "default-src 'self' data:; img-src 'self' data:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'"})
+            self.send_html(phone_upload_page(token, item["expires_at"], self.public_path_prefix), extra_headers={"Content-Security-Policy": "default-src 'self' data:; img-src 'self' data:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'"})
             return
 
         share_match = re.fullmatch(r"/share/([A-Za-z0-9_-]+)", path)
@@ -345,7 +368,7 @@ class KoboHandler(BaseHTTPRequestHandler):
             if not item or item["expires_at"] <= now():
                 self.send_html("<h1>この共有ページは時間切れです</h1><p>パソコンでQRコードを作り直してください。</p>", HTTPStatus.GONE)
                 return
-            self.send_html(share_landing_page(token, item))
+            self.send_html(share_landing_page(token, item, self.public_path_prefix))
             return
 
         share_api_match = re.fullmatch(r"/api/shares/([A-Za-z0-9_-]+)/(download|view)", path)
@@ -377,7 +400,7 @@ class KoboHandler(BaseHTTPRequestHandler):
             if not item or item["expires_at"] <= now():
                 self.send_html("<h1>このカードは時間切れです</h1><p>パソコンでQRコードを作り直してください。</p>", HTTPStatus.GONE)
                 return
-            self.send_html(card_landing_page(token, item))
+            self.send_html(card_landing_page(token, item, self.public_path_prefix))
             return
 
         card_api_match = re.fullmatch(r"/api/cards/([A-Za-z0-9_-]+)/(download|view)", path)
@@ -405,7 +428,7 @@ class KoboHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         cleanup_expired()
-        path = unquote(urlparse(self.path).path)
+        path = self.routed_path()
 
         if path == "/api/photo-sessions":
             token = make_token()
@@ -526,7 +549,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="じぶんページ工房のWebサーバーを起動します")
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "4173")))
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--public-base-url", default=os.environ.get("PUBLIC_BASE_URL", ""), help="公開時にQRへ埋め込むURL（例: https://craft.example.com）")
+    parser.add_argument("--public-base-url", default=os.environ.get("PUBLIC_BASE_URL", ""), help="公開時にQRへ埋め込むURL（例: https://craft.example.com/my-site）")
     args = parser.parse_args()
     try:
         public_base_url = normalize_public_base_url(args.public_base_url)

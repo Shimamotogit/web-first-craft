@@ -18,6 +18,12 @@ def request(base,path,payload=None):
     return urlopen(Request(base+path,data=data,headers=headers),timeout=5)
 
 def main():
+    assert kobo.normalize_public_base_url("https://zovira.jp/my-site/")=="https://zovira.jp/my-site"
+    try:
+        kobo.normalize_public_base_url("https://zovira.jp/a/../b")
+        raise AssertionError("unsafe public path accepted")
+    except ValueError:
+        pass
     kobo.photo_sessions.clear();kobo.share_sessions.clear();kobo.card_sessions.clear();kobo.session_create_times.clear()
     httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1";httpd.public_base_url=""
     thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start();base=f"http://127.0.0.1:{httpd.server_port}"
@@ -31,6 +37,15 @@ def main():
         httpd.public_base_url="https://public.example.test"
         with request(base,"/api/photo-sessions",{}) as r:
             public_session=json.load(r);assert public_session["uploadUrl"].startswith("https://public.example.test/phone/photo/")
+        httpd.public_base_url="https://zovira.jp/my-site"
+        with request(base,"/my-site/api/config") as r:
+            sub_cfg=json.load(r);assert sub_cfg["enabled"] is True and sub_cfg["baseUrl"]=="https://zovira.jp/my-site" and sub_cfg["mode"]=="public"
+        with request(base,"/my-site/api/photo-sessions",{}) as r:
+            sub_session=json.load(r);assert sub_session["uploadUrl"].startswith("https://zovira.jp/my-site/phone/photo/")
+        sub_token=sub_session["token"]
+        with request(base,f"/my-site/phone/photo/{sub_token}") as r:
+            sub_phone=r.read().decode();assert 'const basePath="/my-site"' in sub_phone
+        with request(base,"/my-site/") as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()
         httpd.public_base_url=""
         for page in ("/","/child.html","/adult.html"):
             with request(base,page) as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()

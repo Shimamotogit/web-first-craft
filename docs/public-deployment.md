@@ -82,3 +82,28 @@ https://craft.example.com/api/config
 - 再起動・再デプロイで一時QRセッションは消えます。
 - 公開利用ではHTTPSを使用してください。
 - このアプリにはログイン機能がありません。QR URLは有効期限付きの受け取り鍵として扱ってください。
+
+## `/my-site` のようなサブパスで公開する
+
+`https://zovira.jp/my-site/` のようにサブパスで公開する場合も、別のQRサーバーは不要です。`server/app.py` がサイトとQR APIの両方を担当します。
+
+```bash
+PUBLIC_BASE_URL=https://zovira.jp/my-site bash scripts/systemd/install.sh
+```
+
+Nginxでは次のように、`/my-site/` のプレフィックスを保持して4173番へ転送します。
+
+```nginx
+location = /my-site {
+    return 301 /my-site/;
+}
+
+location ^~ /my-site/ {
+    proxy_pass http://127.0.0.1:4173;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+`proxy_pass` のURL末尾に `/` を付けないでください。設定後は `https://zovira.jp/my-site/api/config` で確認できます。
