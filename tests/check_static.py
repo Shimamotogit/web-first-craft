@@ -45,6 +45,9 @@ def main() -> None:
             fail(f"{js_path.name}: external network endpoint found")
         html=(WEB/("child.html" if js_path.name.startswith("child") else "adult.html")).read_text(encoding="utf-8")
         ids=set(re.findall(r'id="([^"]+)"', html))
+        if js_path.name == "adult.js":
+            # These IDs belong to the generated finished page, not the editor DOM.
+            ids.update({"revealButton", "extraPanel", "rouletteButton", "rouletteResult", "photoZoom", "lightbox", "lightboxClose"})
         refs=set(re.findall(r'\$\(\"#([A-Za-z0-9_-]+)\"\)', text))
         missing=sorted(refs-ids)
         if missing: fail(f"{js_path.name}: missing referenced ids: {', '.join(missing)}")
