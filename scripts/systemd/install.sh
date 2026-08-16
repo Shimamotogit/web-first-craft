@@ -5,6 +5,7 @@ SERVICE_NAME="${SERVICE_NAME:-web-first-craft}"
 PORT="${PORT:-4173}"
 CHECK_ONLY="${CHECK_ONLY:-0}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"
+ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PYTHON="$(command -v python3 || true)"
 RUN_USER="${SUDO_USER:-$(id -un)}"
@@ -64,6 +65,7 @@ TimeoutStopSec=10
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=PUBLIC_BASE_URL=$PUBLIC_BASE_URL
+Environment=ALLOWED_ORIGINS=$ALLOWED_ORIGINS
 NoNewPrivileges=true
 PrivateTmp=true
 

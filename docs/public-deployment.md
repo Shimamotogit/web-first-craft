@@ -1,6 +1,6 @@
 # 公開サイトとして動かす
 
-QRの写真転送・作品カード・完成HTML共有は `/api/...` を使うため、**GitHub Pagesのような静的ホスティングだけでは動きません**。`web/` と `server/app.py` を同じWebサービスとして公開してください。
+QRの写真転送・作品カード・完成HTML共有は `/api/...` を使います。**最も簡単なのは `web/` と `server/app.py` を同じHTTPS Webサービスとして公開する構成**です。GitHub Pagesをフロントとして使う場合は、別途公開したQR APIサーバーへ接続する構成にも対応しています。
 
 ## 必須設定
 
@@ -41,3 +41,13 @@ PUBLIC_BASE_URL=https://craft.example.com bash scripts/systemd/install.sh
 - 再起動・再デプロイで一時QRセッションは消えます。
 - 公開利用では必ずHTTPSを使用してください。
 - このアプリにはログイン機能がありません。QR URLは有効期限付きの受け取り鍵として扱ってください。
+
+
+## GitHub Pages + 別QR API
+
+1. `server/app.py` をHTTPSで公開し、`PUBLIC_BASE_URL=https://api.example.com` を設定します。
+2. APIサーバーにはPagesのOriginを許可します。例: `ALLOWED_ORIGINS=https://shimamotogit.github.io`。Originには `/web-first-craft` のようなパスは含めません。
+3. GitHubリポジトリの **Settings → Secrets and variables → Actions → Variables** で `PUBLIC_API_BASE_URL` を作り、値を `https://api.example.com` にします。
+4. `Deploy static site to Pages` workflowを手動実行します。デプロイ時に `web/runtime-config.js` へAPI URLが書き込まれます。
+
+この構成では、ブラウザの `/api/...` リクエスト、QR画像、写真転送、カード共有、完成HTML共有がすべて `PUBLIC_API_BASE_URL` のサーバーへ送られます。

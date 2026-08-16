@@ -53,7 +53,7 @@ def main() -> None:
         missing=sorted(refs-ids)
         if missing: fail(f"{js_path.name}: missing referenced ids: {', '.join(missing)}")
 
-    required=["Dockerfile","docs/public-deployment.md","server/app.py","web/css/main.css","web/css/child.css","web/css/adult.css","scripts/launch/start-local.bat","scripts/launch/start-local.command","scripts/systemd/install.sh","vendor/python/qrcode/__init__.py"]
+    required=["server/app.py","web/runtime-config.js","web/css/main.css","web/css/child.css","web/css/adult.css","scripts/launch/start-local.bat","scripts/launch/start-local.command","scripts/systemd/install.sh","vendor/python/qrcode/__init__.py","Dockerfile","docs/public-deployment.md"]
     for name in required:
         if not (ROOT/name).exists(): fail(f"{name} is missing")
 
@@ -62,6 +62,10 @@ def main() -> None:
     for js_path, text in ((WEB/"js/child.js", child), (WEB/"js/adult.js", adult)):
         if "server.py" in text:
             fail(f"{js_path.name}: legacy server.py QR guidance remains")
+        if 'fetch("/api/' in text or "fetch('/api/" in text or 'fetch(`/api/' in text:
+            fail(f"{js_path.name}: QR API fetch bypasses runtime-config.js")
+        if "configuredApiBase" not in text or "apiFetch" not in text:
+            fail(f"{js_path.name}: runtime API routing helper is missing")
         for legacy_qr in ("LANサーバーから開く", "インストール時に表示されたURL"):
             if legacy_qr in text:
                 fail(f"{js_path.name}: legacy LAN-only QR guidance remains: {legacy_qr}")
