@@ -42,10 +42,10 @@ Python 3.10以上を利用します。追加インストールは不要です。
 ### 一時的に起動する
 
 ```bash
-python3 server.py
+python3 server/app.py
 ```
 
-Windowsは `start-local.bat`、macOS / Linuxは `./start-local.command` でも起動できます。この起動方法はターミナルを閉じると終了します。
+Windowsは `scripts/launch/start-local.bat`、macOS / Linuxは `./scripts/launch/start-local.command` でも起動できます。この起動方法はターミナルを閉じると終了します。
 
 ```text
 このパソコン: http://localhost:4173
@@ -61,13 +61,13 @@ UbuntuのブースPCではsystemdサービスとして登録できます。**一
 リポジトリのディレクトリで次を1回実行してください。
 
 ```bash
-bash scripts/install-ubuntu-service.sh
+bash scripts/systemd/install.sh
 ```
 
 初回だけ `sudo` のパスワード入力があります。標準ポートは `4173` です。別ポートにする場合は次のようにします。
 
 ```bash
-PORT=8080 bash scripts/install-ubuntu-service.sh
+PORT=8080 bash scripts/systemd/install.sh
 ```
 
 以降はターミナルを閉じて構いません。操作コマンドは次の通りです。
@@ -83,7 +83,7 @@ journalctl -u web-first-craft -f
 サービス登録自体を削除する場合だけ、次を実行します。
 
 ```bash
-bash scripts/uninstall-ubuntu-service.sh
+bash scripts/systemd/uninstall.sh
 ```
 
 > systemdサービスは現在のリポジトリ位置を参照します。登録後にフォルダを移動・削除した場合は、もう一度インストールスクリプトを実行してください。
@@ -127,30 +127,43 @@ LANサーバーは `ThreadingHTTPServer` で複数リクエストを並行処理
 ## テスト
 
 ```bash
-node --check child.js
-node --check adult.js
-python3 -m py_compile server.py
-python3 scripts/check_static.py
-python3 scripts/test_server.py
+node --check web/js/child.js
+node --check web/js/adult.js
+python3 -m py_compile server/app.py
+python3 tests/check_static.py
+python3 tests/test_server.py
 bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh
 ```
 
-## 主なファイル
+## ディレクトリ構成
+
+役割ごとに分離しています。ルート直下にはプロジェクト情報だけを置きます。
 
 ```text
-index.html      # 共通Main
-child.html      # こどもモード
-child.css
-child.js
-adult.html      # カスタムモード
-adult.css
-adult.js
-server.py       # LANサーバー / QR / 一時共有
-scripts/install-ubuntu-service.sh   # Ubuntu常駐化
-scripts/uninstall-ubuntu-service.sh # Ubuntuサービス削除
-vendor_py/      # qrcode同梱
+web-first-craft/
+├── web/                  # ブラウザへ配信する現行フロントエンド
+│   ├── index.html
+│   ├── child.html
+│   ├── adult.html
+│   ├── css/
+│   └── js/
+├── server/               # LANサーバー / QR / 一時共有
+│   └── app.py
+├── tests/                # 静的構造・LAN転送の自動テスト
+├── scripts/
+│   ├── launch/           # 手動起動用ランチャー
+│   └── systemd/          # Ubuntu常駐サービスの登録・削除
+├── vendor/python/        # 同梱Python依存（qrcode）
+├── docs/                 # 調査・設計資料
+├── archive/legacy-web/   # 現在は使わない旧実装
+├── .github/workflows/    # CI / GitHub Pages
+├── README.md
+├── SECURITY.md
+└── LICENSE
 ```
+
+`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。
 
 ## ライセンス
 
-本体は MIT License です。QRコード生成には同梱の `qrcode` を使用し、ライセンス本文を `vendor_py/qrcode-LICENSE.txt` に収録しています。
+本体は MIT License です。QRコード生成には同梱の `qrcode` を使用し、ライセンス本文を `vendor/python/qrcode-LICENSE.txt` に収録しています。

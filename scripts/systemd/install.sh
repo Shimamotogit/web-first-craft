@@ -4,7 +4,7 @@ set -euo pipefail
 SERVICE_NAME="${SERVICE_NAME:-web-first-craft}"
 PORT="${PORT:-4173}"
 CHECK_ONLY="${CHECK_ONLY:-0}"
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PYTHON="$(command -v python3 || true)"
 RUN_USER="${SUDO_USER:-$(id -un)}"
 RUN_GROUP="$(id -gn "$RUN_USER")"
@@ -25,8 +25,8 @@ if [[ ! "$PORT" =~ ^[0-9]+$ ]] || (( PORT < 1 || PORT > 65535 )); then
   exit 1
 fi
 
-if [[ ! -f "$ROOT/server.py" ]]; then
-  echo "server.py が見つかりません: $ROOT/server.py" >&2
+if [[ ! -f "$ROOT/server/app.py" ]]; then
+  echo "server/app.py が見つかりません: $ROOT/server/app.py" >&2
   exit 1
 fi
 
@@ -51,7 +51,7 @@ Type=simple
 User=$RUN_USER
 Group=$RUN_GROUP
 WorkingDirectory=$ROOT
-ExecStart="$PYTHON" "$ROOT/server.py" --host 0.0.0.0 --port $PORT
+ExecStart="$PYTHON" "$ROOT/server/app.py" --host 0.0.0.0 --port $PORT
 Restart=on-failure
 RestartSec=2
 TimeoutStopSec=10

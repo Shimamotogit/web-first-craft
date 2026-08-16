@@ -6,8 +6,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote, urlparse
 from urllib.request import Request, urlopen
-ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
-import server as kobo  # noqa:E402
+ROOT=Path(__file__).resolve().parents[1]
+SERVER_DIR=ROOT/"server"
+sys.path.insert(0,str(SERVER_DIR))
+import app as kobo  # noqa:E402
 
 def request(base,path,payload=None):
     data=None if payload is None else json.dumps(payload,ensure_ascii=False).encode("utf-8")
@@ -23,6 +25,8 @@ def main():
             cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30
         for page in ("/","/child.html","/adult.html"):
             with request(base,page) as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()
+        for asset in ("/css/main.css","/css/child.css","/css/adult.css","/js/child.js","/js/adult.js"):
+            with request(base,asset) as r: assert r.status==200 and len(r.read())>100
         with request(base,"/api/qr?text="+quote(base+"/card/example")) as r:
             qr=r.read();assert r.headers.get_content_type()=="image/svg+xml" and b"<svg" in qr
         with request(base,"/api/photo-sessions",{}) as r: session=json.load(r)

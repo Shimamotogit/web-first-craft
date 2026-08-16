@@ -7,8 +7,9 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGES = [ROOT / "index.html", ROOT / "child.html", ROOT / "adult.html"]
-SCRIPTS = [ROOT / "child.js", ROOT / "adult.js"]
+WEB = ROOT / "web"
+PAGES = [WEB / "index.html", WEB / "child.html", WEB / "adult.html"]
+SCRIPTS = [WEB / "js/child.js", WEB / "js/adult.js"]
 
 class DocumentParser(HTMLParser):
     def __init__(self) -> None:
@@ -35,28 +36,28 @@ def main() -> None:
         if parser.external_assets: fail(f"{html.name}: external assets found: {', '.join(parser.external_assets)}")
         for asset in parser.local_assets:
             clean=asset.split("?",1)[0].split("#",1)[0]
-            if clean and not (ROOT/clean).exists(): fail(f"{html.name}: missing local asset {asset}")
+            if clean and not clean.startswith("/") and not (html.parent/clean).exists(): fail(f"{html.name}: missing local asset {asset}")
         total_ids += len(parser.ids)
 
     for js_path in SCRIPTS:
         text=js_path.read_text(encoding="utf-8")
         if re.search(r"fetch\(\s*[\"'](?:https?:)?//", text) or "WebSocket(" in text:
             fail(f"{js_path.name}: external network endpoint found")
-        html=(ROOT/("child.html" if js_path.name.startswith("child") else "adult.html")).read_text(encoding="utf-8")
+        html=(WEB/("child.html" if js_path.name.startswith("child") else "adult.html")).read_text(encoding="utf-8")
         ids=set(re.findall(r'id="([^"]+)"', html))
         refs=set(re.findall(r'\$\(\"#([A-Za-z0-9_-]+)\"\)', text))
         missing=sorted(refs-ids)
         if missing: fail(f"{js_path.name}: missing referenced ids: {', '.join(missing)}")
 
-    required=["server.py","main.css","child.css","adult.css","start-local.bat","start-local.command"]
+    required=["server/app.py","web/css/main.css","web/css/child.css","web/css/adult.css","scripts/launch/start-local.bat","scripts/launch/start-local.command","scripts/systemd/install.sh","vendor/python/qrcode/__init__.py"]
     for name in required:
         if not (ROOT/name).exists(): fail(f"{name} is missing")
 
-    child=(ROOT/"child.js").read_text(encoding="utf-8")
-    adult=(ROOT/"adult.js").read_text(encoding="utf-8")
+    child=(WEB/"js/child.js").read_text(encoding="utf-8")
+    adult=(WEB/"js/adult.js").read_text(encoding="utf-8")
     if "buildKidHtml" not in child or "drawCard" not in child or "/api/cards" not in child:
         fail("child mode core build/card functions are missing")
-    child_html=(ROOT/"child.html").read_text(encoding="utf-8")
+    child_html=(WEB/"child.html").read_text(encoding="utf-8")
     for marker in ("kidPhonePhotoButton", "toggleKanaButton", "kidFrames", "kidStickers", "kidPatterns", "inputMethodButtons"):
         if f'id="{marker}"' not in child_html:
             fail(f"child mode UI is missing {marker}")
@@ -70,7 +71,7 @@ def main() -> None:
         fail("child final-card workflow must not expose animation choices")
     if "buildHtml" not in adult or "function score" not in adult or "/api/shares" not in adult:
         fail("adult mode core build/score/share functions are missing")
-    adult_html=(ROOT/"adult.html").read_text(encoding="utf-8")
+    adult_html=(WEB/"adult.html").read_text(encoding="utf-8")
     for marker in ("pageWidth", "headingSize", "backgroundR", "backgroundG", "backgroundB", "jsReveal", "jsRoulette", "jsPhotoZoom"):
         if f'id="{marker}"' not in adult_html:
             fail(f"adult custom lab is missing {marker}")

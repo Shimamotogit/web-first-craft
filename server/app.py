@@ -23,14 +23,15 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "vendor_py"))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+WEB_ROOT = PROJECT_ROOT / "web"
+sys.path.insert(0, str(PROJECT_ROOT / "vendor" / "python"))
 
 try:
     import qrcode
     import qrcode.image.svg
 except ImportError as exc:  # pragma: no cover
-    raise SystemExit("QRコードライブラリを読み込めません。vendor_py を確認してください。") from exc
+    raise SystemExit("QRコードライブラリを読み込めません。vendor/python を確認してください。") from exc
 
 PHOTO_TTL = 20 * 60
 SHARE_TTL = 30 * 60
@@ -40,16 +41,19 @@ MAX_HTML_BYTES = 3 * 1024 * 1024
 SAFE_STATIC = {
     "/": "index.html",
     "/index.html": "index.html",
-    "/main.css": "main.css",
     "/child.html": "child.html",
-    "/child.css": "child.css",
-    "/child.js": "child.js",
     "/adult.html": "adult.html",
-    "/adult.css": "adult.css",
-    "/adult.js": "adult.js",
-    # Legacy files are kept for migration/reference and are still directly servable.
-    "/styles.css": "styles.css",
-    "/app.js": "app.js",
+    "/css/main.css": "css/main.css",
+    "/css/child.css": "css/child.css",
+    "/css/adult.css": "css/adult.css",
+    "/js/child.js": "js/child.js",
+    "/js/adult.js": "js/adult.js",
+    # Backward-compatible aliases for cached HTML from the old layout.
+    "/main.css": "css/main.css",
+    "/child.css": "css/child.css",
+    "/adult.css": "css/adult.css",
+    "/child.js": "js/child.js",
+    "/adult.js": "js/adult.js",
 }
 
 sessions_lock = threading.Lock()
@@ -299,7 +303,7 @@ class KoboHandler(BaseHTTPRequestHandler):
             return
 
         if path in SAFE_STATIC:
-            file_path = ROOT / SAFE_STATIC[path]
+            file_path = WEB_ROOT / SAFE_STATIC[path]
             content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
             headers = {"Cache-Control": "no-cache"}
             self.send_bytes(file_path.read_bytes(), f"{content_type}; charset=utf-8" if content_type.startswith("text/") or content_type.endswith("javascript") else content_type, headers=headers)
