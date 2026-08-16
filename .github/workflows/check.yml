@@ -22,6 +22,8 @@ jobs:
       - name: Check Python syntax
         run: python3 -m py_compile server.py scripts/test_server.py
       - name: Check Ubuntu service scripts
-        run: bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh
+        run: |
+          bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh
+          CHECK_ONLY=1 bash scripts/install-ubuntu-service.sh
       - name: Test LAN transfer server
         run: python3 scripts/test_server.py
