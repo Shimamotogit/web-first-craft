@@ -41,6 +41,8 @@
   const nameInput = $("#kidName"), phraseInput = $("#kidPhrase"), learned = $("#learnedText"), kanaGrid = $("#kanaGrid"), toast = $("#kidToast");
   let currentStep = 0, activePadTarget = "name", kanaPage = "basic", lanInfo = { enabled:false, baseUrl:"" };
   let toastTimer = 0, previewObjectUrl = "", activePhotoToken = "", photoPollTimer = 0;
+  // プレビュー生成は init() からすぐ呼ばれるため、SVGで使う写真ノードを先に初期化する。
+  let currentPhotoNode = "";
 
   init();
 
@@ -134,21 +136,24 @@
   function renderKana(){
     kanaGrid.replaceChildren();
     const rows=kanaPages[kanaPage]||kanaPages.basic;
-    const cut=Math.ceil(rows.length/2);
-    [rows.slice(0,cut),rows.slice(cut)].filter(group=>group.length).forEach(group=>{
-      const column=document.createElement("div");column.className="kana-column";
-      group.forEach(row=>{
-        const wrap=document.createElement("div");wrap.className="kana-row";
-        const label=document.createElement("span");label.className="kana-row-label";label.textContent=row[0];wrap.append(label);
-        row.slice(1).forEach(char=>{
-          if(!char){const empty=document.createElement("span");empty.className="kana-empty";wrap.append(empty);return;}
-          const button=document.createElement("button");button.type="button";button.className="kana-char";button.textContent=char==="　"?"空":char;button.setAttribute("aria-label",char==="　"?"くうはく":char);
-          button.addEventListener("click",()=>insertKana(char));wrap.append(button);
-        });
-        column.append(wrap);
+    // 五十音表と同じ向きにする：右端が「あ行」、その左へ「か・さ・た・な…」。
+    // 各列は上から「あ・い・う・え・お」の母音順。
+    kanaGrid.style.setProperty("--kana-columns",String(rows.length));
+    [...rows].reverse().forEach(row=>{
+      const column=document.createElement("div");
+      column.className="kana-column";
+      column.setAttribute("role","group");
+      column.setAttribute("aria-label",row[0]);
+      row.slice(1).forEach(char=>{
+        if(!char){const empty=document.createElement("span");empty.className="kana-empty";empty.setAttribute("aria-hidden","true");column.append(empty);return;}
+        const button=document.createElement("button");
+        button.type="button";button.className="kana-char";button.textContent=char==="　"?"空":char;button.setAttribute("aria-label",char==="　"?"くうはく":char);
+        button.addEventListener("click",()=>insertKana(char));column.append(button);
       });
       kanaGrid.append(column);
     });
+    // 狭い画面でも最初に「あ行」が見えるよう、横スクロール位置を右端に合わせる。
+    requestAnimationFrame(()=>{kanaGrid.scrollLeft=kanaGrid.scrollWidth;});
   }
 
   function insertKana(char){
@@ -184,7 +189,6 @@
   }
 
   function photoGroup(x,y,size,p,rotate=0){const o=photoContentOffset(state.frame,size);return `<g transform="translate(${x} ${y}) rotate(${rotate} ${size/2} ${size/2})">${frameSvg(state.frame,size,p)}<g clip-path="url(#photoClip)" transform="translate(${o.x} ${o.y})"><svg width="${o.size}" height="${o.size}">${currentPhotoNode}</svg></g></g>`;}
-  let currentPhotoNode="";
   function layoutBig(name,phrase,favorites,photoNode,p,sticker){currentPhotoNode=photoNode;const fav=favorites.slice(0,3).map((x,i)=>`<g transform="translate(${86+(i%2)*368} ${785+Math.floor(i/2)*106})"><rect width="334" height="82" rx="24" fill="${i%2?'#fff':p.accent2}" stroke="${p.ink}" stroke-width="5"/><text x="25" y="53" font-size="29" font-weight="900" fill="${p.ink}">★ ${esc(x)}</text></g>`).join("");return `<rect x="42" y="42" width="816" height="1116" rx="54" fill="${p.paper}" stroke="${p.ink}" stroke-width="7"/>${photoGroup(82,92,310,p,-2)}<text x="440" y="132" font-size="27" font-weight="900" fill="${p.accent}">MY WEB PAGE</text>${svgText(name,440,218,370,72,62,3,p.ink)}<g transform="translate(435 405)"><path d="M0 0 H355 L330 175 H20 Z" fill="${p.accent2}" stroke="${p.ink}" stroke-width="5"/>${svgText(phrase,28,60,285,44,31,3,p.ink)}</g><path d="M88 705 H810" stroke="${p.accent}" stroke-width="9" stroke-linecap="round"/><text x="88" y="754" font-size="27" font-weight="900" fill="${p.ink}">すきなもの</text>${fav}<text x="88" y="1098" font-size="21" font-weight="900" fill="${p.accent}">HTML → CSS → JavaScript で つくったよ！</text><text x="735" y="1080" font-size="86" transform="rotate(10 735 1080)">${sticker}</text>`;}
   function layoutStorybook(name,phrase,favorites,photoNode,p,sticker){currentPhotoNode=photoNode;const fav=favorites.slice(0,3).map((x,i)=>`<g transform="translate(486 ${650+i*105})"><circle cx="26" cy="26" r="26" fill="${i%2?p.accent2:p.accent}"/><text x="26" y="36" text-anchor="middle" font-size="23" fill="${i%2?p.ink:'#fff'}">★</text>${svgText(esc(x),70,35,250,38,29,2,p.ink)}</g>`).join("");return `<rect x="38" y="46" width="824" height="1108" rx="32" fill="#fffdf5" stroke="${p.ink}" stroke-width="7"/><path d="M450 65 V1135" stroke="${p.accent}" stroke-width="4" opacity=".35"/><path d="M439 70 Q450 120 461 70 V1130 Q450 1085 439 1130Z" fill="${p.accent2}" opacity=".55"/><text x="82" y="128" font-size="24" font-weight="900" fill="${p.accent}">わたしの えほん</text>${photoGroup(90,178,300,p,-3)}${svgText(name,82,555,320,65,54,3,p.ink)}<text x="490" y="130" font-size="23" font-weight="900" fill="${p.accent}">ひとこと</text><g transform="translate(485 170)"><rect width="310" height="300" rx="38" fill="${p.accent2}" stroke="${p.ink}" stroke-width="5"/>${svgText(phrase,28,80,250,52,36,4,p.ink)}</g><text x="486" y="590" font-size="25" font-weight="900" fill="${p.ink}">すきなもの</text>${fav}<g transform="translate(95 765)"><path d="M0 0 Q145 70 290 0 V190 Q145 255 0 190Z" fill="${p.accent}" opacity=".16"/><text x="145" y="135" text-anchor="middle" font-size="92">${sticker}</text></g><text x="485" y="1060" font-size="20" font-weight="900" fill="${p.accent}">じぶんで つくった WEBページ</text>`;}
   function layoutNotebook(name,phrase,favorites,photoNode,p,sticker){currentPhotoNode=photoNode;const lines=Array.from({length:18},(_,i)=>`<line x1="78" y1="${120+i*55}" x2="830" y2="${120+i*55}" stroke="${p.accent}" opacity=".18" stroke-width="3"/>`).join("");const fav=favorites.slice(0,3).map((x,i)=>`<g transform="translate(${110+(i%2)*370} ${725+Math.floor(i/2)*128}) rotate(${i%2?2:-2})"><rect width="330" height="96" rx="8" fill="${i===1?p.accent2:'#fff4a8'}" stroke="${p.ink}" stroke-width="4"/><text x="24" y="60" font-size="30" font-weight="900" fill="${p.ink}">✓ ${esc(x)}</text></g>`).join("");return `<rect x="44" y="44" width="812" height="1112" rx="18" fill="#fffdf4" stroke="${p.ink}" stroke-width="7"/>${lines}<line x1="128" y1="62" x2="128" y2="1135" stroke="#e27373" opacity=".5" stroke-width="4"/><text x="165" y="142" font-size="26" font-weight="900" fill="${p.accent}">MY WEB PAGE / じゆうちょう</text>${svgText(name,165,235,365,66,56,3,p.ink)}${photoGroup(555,130,245,p,4)}<g transform="translate(165 475) rotate(-1)"><path d="M0 0 H585 L560 150 H20 Z" fill="${p.accent2}" stroke="${p.ink}" stroke-width="4"/>${svgText(phrase,35,65,500,43,32,3,p.ink)}</g><text x="165" y="680" font-size="28" font-weight="900" fill="${p.ink}">すきなもの メモ</text>${fav}<text x="700" y="1065" font-size="90" transform="rotate(-12 700 1065)">${sticker}</text>`;}
