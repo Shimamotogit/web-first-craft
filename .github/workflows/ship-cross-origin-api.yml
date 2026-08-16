@@ -1,0 +1,79 @@
+name: Ship cross-origin QR API support
+
+on:
+  push:
+    paths:
+      - .github/workflows/ship-cross-origin-api.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Apply reviewed patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, textwrap
+
+          # Normalize current code to the anchors used by the reviewed implementation patch.
+          index=Path('web/index.html'); text=index.read_text(encoding='utf-8')
+          current='''  <script>\n    fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{\n      const chip=document.getElementById('lanChip');\n      if(data.enabled){chip.classList.add('ready');chip.innerHTML=data.mode==='public'?'<span></span> 公開モード：QR機能が使えます':'<span></span> QRサーバー接続済み：QR機能が使えます';}\n    }).catch(()=>{\n      const chip=document.getElementById('lanChip');\n      chip.classList.remove('ready');\n      chip.innerHTML='<span></span> 静的版：QR機能にはサーバーが必要です';\n    });\n  </script>'''
+          normalized='''  <script>\n    fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{\n      const chip=document.getElementById('lanChip');\n      if(data.enabled){chip.classList.add('ready');chip.innerHTML='<span></span> QR機能：利用できます';}\n    }).catch(()=>{\n      const chip=document.getElementById('lanChip');\n      chip.classList.remove('ready');\n      chip.innerHTML='<span></span> QR機能：バックエンド未接続';\n    });\n  </script>'''
+          if current not in text: raise SystemExit('index block missing')
+          index.write_text(text.replace(current,normalized,1),encoding='utf-8')
+
+          adult=Path('web/js/adult.js'); text=adult.read_text(encoding='utf-8')
+          a="""  async function checkTransferServer(){try{const response=await fetch('/api/config',{cache:'no-store'});if(!response.ok)throw new Error();const data=await response.json();transferInfo={enabled:Boolean(data.enabled),baseUrl:String(data.baseUrl||'')};}catch(_){transferInfo={enabled:false,baseUrl:''};}return transferInfo.enabled;}\n  async function ensureTransferServer(){if(transferInfo.enabled||await checkTransferServer())return true;showToast('QR機能用サーバーに接続できません。公開サーバーの設定を確認してください');return false;}"""
+          b="""  async function checkTransferServer(){try{const response=await fetch('/api/config',{cache:'no-store'});if(!response.ok)throw new Error();const data=await response.json();transferInfo={enabled:Boolean(data.enabled),baseUrl:String(data.baseUrl||'')};}catch(_){transferInfo={enabled:false,baseUrl:''};}return transferInfo.enabled;}\n  async function ensureTransferServer(){if(transferInfo.enabled||await checkTransferServer())return true;showToast('QR機能に接続できません。しばらくしてからもういちどためしてね');return false;}"""
+          if a not in text: raise SystemExit('adult block missing')
+          adult.write_text(text.replace(a,b,1),encoding='utf-8')
+
+          checks=Path('tests/check_static.py'); text=checks.read_text(encoding='utf-8')
+          a='required=["Dockerfile","docs/public-deployment.md","server/app.py","web/css/main.css","web/css/child.css","web/css/adult.css","scripts/launch/start-local.bat","scripts/launch/start-local.command","scripts/systemd/install.sh","vendor/python/qrcode/__init__.py"]'
+          b='required=["server/app.py","web/css/main.css","web/css/child.css","web/css/adult.css","scripts/launch/start-local.bat","scripts/launch/start-local.command","scripts/systemd/install.sh","vendor/python/qrcode/__init__.py","Dockerfile","docs/public-deployment.md"]'
+          if a not in text: raise SystemExit('required list missing')
+          checks.write_text(text.replace(a,b,1),encoding='utf-8')
+
+          tests=Path('tests/test_server.py'); text=tests.read_text(encoding='utf-8')
+          text=text.replace('httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1";httpd.public_base_url=""', 'httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1"')
+          text=text.replace('cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS and cfg["mode"]=="local"', 'cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS')
+          tests.write_text(text,encoding='utf-8')
+
+          source=Path('.github/workflows/apply-cross-origin-api.yml').read_text(encoding='utf-8')
+          match=re.search(r"      - name: Apply split frontend/API support\n        run: \|\n          python3 - <<'PY'\n(.*?)\n          PY\n",source,re.S)
+          if not match: raise SystemExit('patch body missing')
+          exec(compile(textwrap.dedent(match.group(1)),'cross-origin-patch','exec'))
+
+          # Reconcile the integration test with pre-existing local/public-base-url coverage.
+          tests=Path('tests/test_server.py'); text=tests.read_text(encoding='utf-8')
+          text=text.replace('httpd.public_base_url="https://api.example.test";httpd.allowed_origins={"https://frontend.example.test"}', 'httpd.public_base_url="";httpd.allowed_origins={"https://frontend.example.test"}')
+          text=text.replace('cfg=json.load(r);assert cfg["enabled"] is True and cfg["baseUrl"]=="https://api.example.test" and cfg["mode"]=="public" and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS', 'cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS and cfg["mode"]=="local"')
+          text=text.replace('\n        assert session["uploadUrl"].startswith("https://api.example.test/")','')
+          tests.write_text(text,encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check web/js/child.js
+          node --check web/js/adult.js
+          node --check web/runtime-config.js
+          python3 -m py_compile server/app.py tests/check_static.py tests/test_server.py
+          python3 tests/check_static.py
+          python3 tests/test_server.py
+          bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
+          CHECK_ONLY=1 bash scripts/systemd/install.sh
+
+      - name: Commit implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/child.html web/adult.html web/index.html web/js/child.js web/js/adult.js server/app.py scripts/systemd/install.sh tests/check_static.py tests/test_server.py README.md docs/public-deployment.md
+          git commit -m "Support Pages with separate QR API"
+          git push origin HEAD:main
