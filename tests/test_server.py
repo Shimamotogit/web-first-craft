@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Integration checks for LAN QR/photo/HTML/card transfer using stdlib only."""
+"""Integration checks for local/public QR, photo, HTML and card transfer."""
 from __future__ import annotations
 import base64, json, re, sys, threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote, urlparse
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 ROOT=Path(__file__).resolve().parents[1]
 SERVER_DIR=ROOT/"server"
@@ -17,12 +18,20 @@ def request(base,path,payload=None):
     return urlopen(Request(base+path,data=data,headers=headers),timeout=5)
 
 def main():
-    kobo.photo_sessions.clear();kobo.share_sessions.clear();kobo.card_sessions.clear()
-    httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1"
+    kobo.photo_sessions.clear();kobo.share_sessions.clear();kobo.card_sessions.clear();kobo.session_create_times.clear()
+    httpd=kobo.ThreadingHTTPServer(("127.0.0.1",0),kobo.KoboHandler);httpd.lan_ip="127.0.0.1";httpd.public_base_url=""
     thread=threading.Thread(target=httpd.serve_forever,daemon=True);thread.start();base=f"http://127.0.0.1:{httpd.server_port}"
     try:
         with request(base,"/api/config") as r:
-            cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS
+            cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS and cfg["mode"]=="local"
+        with request(base,"/healthz") as r: assert json.load(r)["ok"] is True
+        public_req=Request(base+"/api/config",headers={"Host":"craft.example.test","X-Forwarded-Proto":"https"})
+        with urlopen(public_req,timeout=5) as r:
+            public_cfg=json.load(r);assert public_cfg["baseUrl"]=="https://craft.example.test" and public_cfg["mode"]=="public"
+        httpd.public_base_url="https://public.example.test"
+        with request(base,"/api/photo-sessions",{}) as r:
+            public_session=json.load(r);assert public_session["uploadUrl"].startswith("https://public.example.test/phone/photo/")
+        httpd.public_base_url=""
         for page in ("/","/child.html","/adult.html"):
             with request(base,page) as r: assert r.status==200 and b"<!doctype html>" in r.read().lower()
         for asset in ("/css/main.css","/css/child.css","/css/adult.css","/js/child.js","/js/adult.js"):
@@ -67,18 +76,38 @@ def main():
         with request(base,f"/api/cards/{ct}/view") as r: assert r.headers.get_content_type()=="image/png" and r.read().startswith(b"\x89PNG")
         with request(base,f"/api/cards/{ct}/download") as r: assert "attachment" in r.headers.get("Content-Disposition","")
 
-        # A busy workshop cannot grow unbounded session metadata in memory.
+        # Public traffic cannot evict active participant sessions when capacity is full.
         original_limit=kobo.MAX_ACTIVE_SESSIONS
+        original_rate=kobo.MAX_SESSION_CREATES_PER_MINUTE
         try:
-            kobo.MAX_ACTIVE_SESSIONS=12
-            for _ in range(20):
-                with request(base,"/api/photo-sessions",{}) as r: assert json.load(r)["token"]
             with kobo.sessions_lock:
-                total=len(kobo.photo_sessions)+len(kobo.share_sessions)+len(kobo.card_sessions)
-            assert total<=12
+                kobo.photo_sessions.clear();kobo.share_sessions.clear();kobo.card_sessions.clear();kobo.session_create_times.clear()
+            kobo.MAX_ACTIVE_SESSIONS=4
+            kobo.MAX_SESSION_CREATES_PER_MINUTE=20
+            created=[]
+            for _ in range(4):
+                with request(base,"/api/photo-sessions",{}) as r: created.append(json.load(r)["token"])
+            try:
+                request(base,"/api/photo-sessions",{})
+                raise AssertionError("capacity limit did not reject a new session")
+            except HTTPError as exc:
+                assert exc.code==503
+            with kobo.sessions_lock:
+                assert set(created).issubset(kobo.photo_sessions)
+                kobo.photo_sessions.clear();kobo.session_create_times.clear()
+            kobo.MAX_ACTIVE_SESSIONS=20
+            kobo.MAX_SESSION_CREATES_PER_MINUTE=2
+            for _ in range(2):
+                with request(base,"/api/photo-sessions",{}) as r: assert json.load(r)["token"]
+            try:
+                request(base,"/api/photo-sessions",{})
+                raise AssertionError("rate limit did not reject session creation")
+            except HTTPError as exc:
+                assert exc.code==429
         finally:
             kobo.MAX_ACTIVE_SESSIONS=original_limit
-        print("OK: static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded sessions, PNG card share")
+            kobo.MAX_SESSION_CREATES_PER_MINUTE=original_rate
+        print("OK: local/public URL generation, static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded/rate-limited sessions, PNG card share")
     finally:
         httpd.shutdown();httpd.server_close();thread.join(timeout=3)
 if __name__=="__main__": main()

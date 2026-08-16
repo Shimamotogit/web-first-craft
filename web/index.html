@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5c451">
-  <meta name="description" content="HTML・CSS・JavaScriptの3ステップで、Webサイトを形にする仕事を体験するローカルWeb工作室。">
+  <meta name="description" content="HTML・CSS・JavaScriptの3ステップで、Webサイトを形にする仕事を体験するWeb工作室。">
   <title>じぶんページ工房｜Webサイトをつくる体験</title>
   <link rel="stylesheet" href="css/main.css">
 </head>
@@ -82,17 +82,17 @@
 
   <footer>
     <p>じぶんページ工房</p>
-    <p>LAN内で使える、小さなWeb制作体験ツール。</p>
+    <p>ブラウザで使える、小さなWeb制作体験ツール。</p>
   </footer>
 
   <script>
     fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(data=>{
       const chip=document.getElementById('lanChip');
-      if(data.enabled){chip.classList.add('ready');chip.innerHTML='<span></span> LANモード：QR機能が使えます';}
+      if(data.enabled){chip.classList.add('ready');chip.innerHTML=data.mode==='public'?'<span></span> 公開モード：QR機能が使えます':'<span></span> QRサーバー接続済み：QR機能が使えます';}
     }).catch(()=>{
       const chip=document.getElementById('lanChip');
       chip.classList.remove('ready');
-      chip.innerHTML='<span></span> 静的モード：QRはLAN版で使えます';
+      chip.innerHTML='<span></span> 静的版：QR機能にはサーバーが必要です';
     });
   </script>
 </body>

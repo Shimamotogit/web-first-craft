@@ -4,6 +4,7 @@ set -euo pipefail
 SERVICE_NAME="${SERVICE_NAME:-web-first-craft}"
 PORT="${PORT:-4173}"
 CHECK_ONLY="${CHECK_ONLY:-0}"
+PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PYTHON="$(command -v python3 || true)"
 RUN_USER="${SUDO_USER:-$(id -un)}"
@@ -25,6 +26,11 @@ if [[ ! "$PORT" =~ ^[0-9]+$ ]] || (( PORT < 1 || PORT > 65535 )); then
   exit 1
 fi
 
+if [[ -n "$PUBLIC_BASE_URL" ]] && [[ ! "$PUBLIC_BASE_URL" =~ ^https?://[^[:space:]]+$ ]]; then
+  echo "PUBLIC_BASE_URL は https://example.com の形式で指定してください。" >&2
+  exit 1
+fi
+
 if [[ ! -f "$ROOT/server/app.py" ]]; then
   echo "server/app.py が見つかりません: $ROOT/server/app.py" >&2
   exit 1
@@ -42,7 +48,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 cat >"$TMP_UNIT" <<EOF
 [Unit]
-Description=Web First Craft LAN workshop server
+Description=Web First Craft workshop server
 Wants=network-online.target
 After=network-online.target
 
@@ -57,6 +63,7 @@ RestartSec=2
 TimeoutStopSec=10
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PUBLIC_BASE_URL=$PUBLIC_BASE_URL
 NoNewPrivileges=true
 PrivateTmp=true
 
@@ -97,7 +104,7 @@ if ! sudo systemctl is-active --quiet "$SERVICE_NAME.service"; then
   exit 1
 fi
 
-LAN_URL="$(
+TRANSFER_URL="$(
   "$PYTHON" - "$PORT" <<'PYURL' 2>/dev/null || true
 import json
 import sys
@@ -119,10 +126,14 @@ PYURL
 echo
 echo "起動しました。ターミナルを閉じても動き続けます。"
 echo "このPC: http://localhost:$PORT"
-if [[ -n "$LAN_URL" ]]; then
-  echo "同じLAN: $LAN_URL"
+if [[ -n "$TRANSFER_URL" ]]; then
+  if [[ -n "$PUBLIC_BASE_URL" ]]; then
+    echo "公開URL / QR: $TRANSFER_URL"
+  else
+    echo "QR接続URL: $TRANSFER_URL"
+  fi
 else
-  echo "同じLANのURLを取得できませんでした。http://localhost:$PORT/api/config の baseUrl を確認してください。" >&2
+  echo "QR用URLを取得できませんでした。http://localhost:$PORT/api/config の baseUrl を確認してください。" >&2
 fi
 echo
 echo "状態確認: sudo systemctl status $SERVICE_NAME --no-pager"

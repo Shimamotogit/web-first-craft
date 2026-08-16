@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""LAN-only server for じぶんページ工房.
+"""Web server for じぶんページ工房.
 
 Serves the editor, receives temporary phone photo uploads, and exposes temporary
-finished-page downloads. All transfer data stays in memory and expires.
+finished-page downloads. It supports local/LAN use and public HTTPS deployments.
+All transfer data stays in memory and expires.
 """
 from __future__ import annotations
 
@@ -40,6 +41,7 @@ MAX_JSON_BYTES = 4 * 1024 * 1024
 MAX_HTML_BYTES = 3 * 1024 * 1024
 MAX_ACTIVE_SESSIONS = 96
 MAX_SESSION_MEMORY_BYTES = 96 * 1024 * 1024
+MAX_SESSION_CREATES_PER_MINUTE = int(os.environ.get("MAX_SESSION_CREATES_PER_MINUTE", "60"))
 SAFE_STATIC = {
     "/": "index.html",
     "/index.html": "index.html",
@@ -62,6 +64,7 @@ sessions_lock = threading.Lock()
 photo_sessions: dict[str, dict] = {}
 share_sessions: dict[str, dict] = {}
 card_sessions: dict[str, dict] = {}
+session_create_times: list[float] = []
 
 
 def now() -> float:
@@ -93,22 +96,22 @@ def session_payload_bytes(item: dict) -> int:
 
 
 def reserve_session_capacity_locked(additional_bytes: int = 0, protected: tuple | None = None, extra_session: bool = False) -> bool:
+    # Expired data may be removed, but an active participant session is never evicted
+    # just because another browser creates a new QR session.
     _cleanup_expired_locked()
     stores = (photo_sessions, share_sessions, card_sessions)
     records = [(store, key, item) for store in stores for key, item in store.items()]
     used = sum(session_payload_bytes(item) for _, _, item in records)
     target_count = len(records) + (1 if extra_session else 0)
-    candidates = sorted(
-        (record for record in records if protected is None or not (record[0] is protected[0] and record[1] == protected[1])),
-        key=lambda record: record[2].get("created_at", 0),
-    )
-    while target_count > MAX_ACTIVE_SESSIONS or used + additional_bytes > MAX_SESSION_MEMORY_BYTES:
-        if not candidates:
-            return False
-        store, key, item = candidates.pop(0)
-        used -= session_payload_bytes(item)
-        target_count -= 1
-        store.pop(key, None)
+    return target_count <= MAX_ACTIVE_SESSIONS and used + additional_bytes <= MAX_SESSION_MEMORY_BYTES
+
+
+def allow_session_create_locked() -> bool:
+    cutoff = now() - 60
+    session_create_times[:] = [created for created in session_create_times if created > cutoff]
+    if len(session_create_times) >= MAX_SESSION_CREATES_PER_MINUTE:
+        return False
+    session_create_times.append(now())
     return True
 
 
@@ -148,6 +151,30 @@ def safe_filename(value: str) -> str:
     return cleaned or "じぶんページ.html"
 
 
+def normalize_public_base_url(value: str) -> str:
+    value = str(value or "").strip()
+    if not value:
+        return ""
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:
+        raise ValueError("PUBLIC_BASE_URL must be an origin such as https://example.com")
+    if any(ch in parsed.netloc for ch in "\r\n"):
+        raise ValueError("invalid PUBLIC_BASE_URL")
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def safe_host_header(value: str) -> bool:
+    return bool(value) and len(value) <= 255 and bool(re.fullmatch(r"[A-Za-z0-9.\-:\[\]]+", value))
+
+
+def is_local_host_header(value: str) -> bool:
+    try:
+        hostname = (urlparse("http://" + value).hostname or "").lower()
+    except ValueError:
+        return True
+    return hostname in {"localhost", "127.0.0.1", "::1"}
+
+
 def phone_upload_page(token: str, expires_at: float) -> str:
     remaining = max(1, int((expires_at - now()) / 60))
     token_json = json.dumps(token)
@@ -156,8 +183,8 @@ def phone_upload_page(token: str, expires_at: float) -> str:
 <meta name="theme-color" content="#f4c95d"><title>写真を送る｜じぶんページ工房</title>
 <style>
 *{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;color:#2d2a26;background:#e6dccb;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;line-height:1.7}}main{{width:min(520px,100%);padding:28px;background:#fffdf7;border:3px solid #2d2a26;border-radius:16px 22px 14px 19px;box-shadow:8px 9px 0 rgba(45,42,38,.18)}}h1{{margin:.1em 0;font-size:1.65rem}}.back-button{{width:auto;min-height:44px;margin:0 0 14px;padding:7px 14px;color:#2d2a26;background:#fff;border:2px solid #776f64;border-radius:10px;font:inherit;font-weight:900;cursor:pointer}}.kicker{{margin:0;color:#a8382b;font-weight:900;letter-spacing:.12em}}.notice{{padding:12px;background:#fff4ca;border-left:5px solid #d2a52c}}label{{display:block;font-weight:900}}.photo-source-grid{{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}}.photo-source{{position:relative;display:grid;place-items:center;min-height:62px;padding:10px 12px;background:#fff;border:2px solid #776f64;border-radius:11px;text-align:center;cursor:pointer}}.photo-source:first-child{{background:#fff4ca}}.photo-source:last-child{{background:#dff6ff}}.photo-source input{{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}}@media(max-width:420px){{.photo-source-grid{{grid-template-columns:1fr}}}}button{{width:100%;min-height:52px;margin-top:18px;color:#fff;background:#2d2a26;border:2px solid #2d2a26;border-radius:10px;font:inherit;font-weight:900;cursor:pointer}}button:disabled{{opacity:.45}}#preview{{width:150px;height:150px;margin:18px auto 0;object-fit:cover;border:3px solid #2d2a26;border-radius:48% 52% 45% 55%}}#status{{min-height:1.7em;font-weight:900}}small{{color:#625c54}}</style></head>
-<body><main><button id="back" class="back-button" type="button">← もどる</button><p class="kicker">SAME WI-FI PHOTO</p><h1>写真をパソコンへ送る</h1>
-<p class="notice">この写真は同じLAN内の作成画面へだけ送られ、約{remaining}分でサーバーのメモリから消えます。</p>
+<body><main><button id="back" class="back-button" type="button">← もどる</button><p class="kicker">PHOTO TRANSFER</p><h1>写真をパソコンへ送る</h1>
+<p class="notice">この写真は、このサイトの作成画面へ一時的に送られ、約{remaining}分でサーバーのメモリから消えます。</p>
 <div class="photo-source-grid"><label class="photo-source">🖼 写真フォルダから選ぶ<input id="photo" type="file" accept="image/png,image/jpeg,image/webp"></label><label class="photo-source">📷 カメラで撮る<input id="cameraPhoto" type="file" accept="image/png,image/jpeg,image/webp" capture="user"></label></div>
 <img id="preview" alt="選んだ写真" hidden><button id="send" type="button" disabled>この写真を送る</button>
 <p id="status" role="status" aria-live="polite"></p><small>顔、名札、制服、家のまわりが写っていないか、おうちの人・先生と確認してください。</small></main>
@@ -178,7 +205,7 @@ def share_landing_page(token: str, item: dict) -> str:
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f4c95d"><title>{nickname}を受け取る</title>
 <style>*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;color:#2d2a26;background:#e6dccb;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;line-height:1.7}}main{{width:min(560px,100%);padding:30px;background:#fffdf7;border:3px solid #2d2a26;border-radius:16px 22px 14px 19px;box-shadow:8px 9px 0 rgba(45,42,38,.18)}}h1{{margin:.1em 0}}.kicker{{margin:0;color:#a8382b;font-weight:900;letter-spacing:.12em}}.actions{{display:grid;gap:12px;margin-top:24px}}a{{display:grid;place-items:center;min-height:54px;padding:10px 16px;color:#2d2a26;background:#fff;border:2px solid #2d2a26;border-radius:10px;text-align:center;text-decoration:none;font-weight:900}}a.primary{{color:#fff;background:#2d2a26}}.note{{margin-top:22px;padding:12px;background:#fff4ca;border-left:5px solid #d2a52c}}code{{word-break:break-all}}</style></head>
-<body><main><p class="kicker">SAME WI-FI SHARE</p><h1>{nickname}を受け取る</h1><p>同じLAN内のパソコンから、一時的に共有されています。</p>
+<body><main><p class="kicker">TEMPORARY SHARE</p><h1>{nickname}を受け取る</h1><p>作成画面から、一時的に共有されています。</p>
 <div class="actions"><a class="primary" href="/api/shares/{quote(token)}/download">HTMLをこの端末に保存</a><a href="/api/shares/{quote(token)}/view" target="_blank" rel="noopener">まずページを開いて見る</a></div>
 <p class="note"><strong>ファイル名：</strong> <code>{filename}</code><br>この共有URLは約30分で使えなくなります。</p></main></body></html>"""
 
@@ -194,14 +221,33 @@ def card_landing_page(token: str, item: dict) -> str:
 
 
 class KoboHandler(BaseHTTPRequestHandler):
-    server_version = "JibunPageKobo/2.0"
+    server_version = "JibunPageKobo/2.1"
 
     def log_message(self, fmt: str, *args: object) -> None:
         sys.stdout.write("[%s] %s\n" % (self.log_date_time_string(), fmt % args))
 
     @property
     def base_url(self) -> str:
+        configured = str(getattr(self.server, "public_base_url", "") or "")
+        if configured:
+            return configured
+        host = self.headers.get("Host", "").strip()
+        forwarded_proto = self.headers.get("X-Forwarded-Proto", "").split(",", 1)[0].strip().lower()
+        if safe_host_header(host):
+            # HTTPS reverse proxies normally preserve Host and send X-Forwarded-Proto.
+            if forwarded_proto == "https":
+                return f"https://{host}"
+            # When the editor itself was opened through a LAN/public hostname, use that
+            # exact host so the QR points back to the same reachable server.
+            if not is_local_host_header(host):
+                return f"http://{host}"
+        # localhost is not reachable from a phone, so local development falls back
+        # to the best LAN address detected on the machine.
         return f"http://{self.server.lan_ip}:{self.server.server_port}"  # type: ignore[attr-defined]
+
+    @property
+    def transfer_mode(self) -> str:
+        return "public" if self.base_url.startswith("https://") else "local"
 
     def send_bytes(self, body: bytes, content_type: str, status: int = 200, headers: dict | None = None) -> None:
         self.send_response(status)
@@ -246,8 +292,12 @@ class KoboHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = unquote(parsed.path)
 
+        if path == "/healthz":
+            self.send_json({"ok": True})
+            return
+
         if path == "/api/config":
-            self.send_json({"enabled": True, "baseUrl": self.base_url, "expiresMinutes": {"photo": 20, "share": 30, "card": 30}, "limits": {"activeSessions": MAX_ACTIVE_SESSIONS, "memoryMB": MAX_SESSION_MEMORY_BYTES // (1024 * 1024)}})
+            self.send_json({"enabled": True, "baseUrl": self.base_url, "mode": self.transfer_mode, "expiresMinutes": {"photo": 20, "share": 30, "card": 30}, "limits": {"activeSessions": MAX_ACTIVE_SESSIONS, "memoryMB": MAX_SESSION_MEMORY_BYTES // (1024 * 1024), "createsPerMinute": MAX_SESSION_CREATES_PER_MINUTE}})
             return
 
         if path == "/api/qr":
@@ -361,6 +411,9 @@ class KoboHandler(BaseHTTPRequestHandler):
             token = make_token()
             expires_at = now() + PHOTO_TTL
             with sessions_lock:
+                if not allow_session_create_locked():
+                    self.send_json({"error": "rate-limited"}, HTTPStatus.TOO_MANY_REQUESTS)
+                    return
                 if not reserve_session_capacity_locked(extra_session=True):
                     self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
                     return
@@ -412,6 +465,9 @@ class KoboHandler(BaseHTTPRequestHandler):
                 filename += ".html"
             nickname = str(payload.get("nickname", ""))[:24]
             with sessions_lock:
+                if not allow_session_create_locked():
+                    self.send_json({"error": "rate-limited"}, HTTPStatus.TOO_MANY_REQUESTS)
+                    return
                 if not reserve_session_capacity_locked(len(markup.encode("utf-8")), extra_session=True):
                     self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
                     return
@@ -452,6 +508,9 @@ class KoboHandler(BaseHTTPRequestHandler):
                 filename += ".png"
             title = str(payload.get("title", "作品カード"))[:40]
             with sessions_lock:
+                if not allow_session_create_locked():
+                    self.send_json({"error": "rate-limited"}, HTTPStatus.TOO_MANY_REQUESTS)
+                    return
                 if not reserve_session_capacity_locked(len(raw), extra_session=True):
                     self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)
                     return
@@ -464,18 +523,30 @@ class KoboHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="じぶんページ工房をLAN内で起動します")
+    parser = argparse.ArgumentParser(description="じぶんページ工房のWebサーバーを起動します")
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "4173")))
     parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--public-base-url", default=os.environ.get("PUBLIC_BASE_URL", ""), help="公開時にQRへ埋め込むURL（例: https://craft.example.com）")
     args = parser.parse_args()
+    try:
+        public_base_url = normalize_public_base_url(args.public_base_url)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     server = ThreadingHTTPServer((args.host, args.port), KoboHandler)
     server.lan_ip = get_lan_ip()  # type: ignore[attr-defined]
+    server.public_base_url = public_base_url  # type: ignore[attr-defined]
     local_url = f"http://localhost:{server.server_port}"
     lan_url = f"http://{server.lan_ip}:{server.server_port}"  # type: ignore[attr-defined]
     print("\nじぶんページ工房を起動しました。")
     print(f"このパソコン: {local_url}")
-    print(f"同じLANから: {lan_url}")
+    if public_base_url:
+        print(f"公開URL / QR: {public_base_url}")
+        if not public_base_url.startswith("https://"):
+            print("注意: インターネット公開ではHTTPSを使用してください。", file=sys.stderr)
+    else:
+        print(f"同じLANから: {lan_url}")
+        print("公開時は PUBLIC_BASE_URL=https://... を設定できます。")
     print("止めるときは Ctrl+C を押してください。\n")
     try:
         server.serve_forever()
