@@ -16,6 +16,7 @@
 - 五十音表型のひらがなパッドとPCキーボードを切り替えて入力可能
 - ひらがなパッドは「だす / かくす」を切り替え可能
 - PCから写真を選択、または同一LANのスマホからQRで写真送信
+- スマホ側は「写真フォルダから選ぶ」と「カメラで撮る」を選択可能
 - 編集中プレビューと完成PNGは **同じSVG描画** を利用するため、構図・写真・文字・装飾が一致
 - 完成PNGをQRでスマホへ送り、その端末に保存可能
 
@@ -38,11 +39,13 @@ CSS点はデザインの美しさを機械判定するものではなく、「�
 
 Python 3.10以上を利用します。追加インストールは不要です。
 
+### 一時的に起動する
+
 ```bash
 python3 server.py
 ```
 
-Windowsは `start-local.bat`、macOS / Linuxは `./start-local.command` でも起動できます。
+Windowsは `start-local.bat`、macOS / Linuxは `./start-local.command` でも起動できます。この起動方法はターミナルを閉じると終了します。
 
 ```text
 このパソコン: http://localhost:4173
@@ -51,11 +54,51 @@ Windowsは `start-local.bat`、macOS / Linuxは `./start-local.command` でも�
 
 スマートフォンはパソコンと同じWi-Fiへ接続してください。
 
+### Ubuntuで常駐させる（おすすめ）
+
+UbuntuのブースPCではsystemdサービスとして登録できます。**一度登録すれば、ターミナルを閉じても動作し、PC再起動後も自動起動します。**
+
+リポジトリのディレクトリで次を1回実行してください。
+
+```bash
+bash scripts/install-ubuntu-service.sh
+```
+
+初回だけ `sudo` のパスワード入力があります。標準ポートは `4173` です。別ポートにする場合は次のようにします。
+
+```bash
+PORT=8080 bash scripts/install-ubuntu-service.sh
+```
+
+以降はターミナルを閉じて構いません。操作コマンドは次の通りです。
+
+```bash
+sudo systemctl status web-first-craft --no-pager
+sudo systemctl restart web-first-craft
+sudo systemctl stop web-first-craft
+sudo systemctl start web-first-craft
+journalctl -u web-first-craft -f
+```
+
+サービス登録自体を削除する場合だけ、次を実行します。
+
+```bash
+bash scripts/uninstall-ubuntu-service.sh
+```
+
+> systemdサービスは現在のリポジトリ位置を参照します。登録後にフォルダを移動・削除した場合は、もう一度インストールスクリプトを実行してください。
+
+## 複数PC・複数人での同時利用
+
+LANサーバーは `ThreadingHTTPServer` で複数リクエストを並行処理します。写真送信・完成HTML・完成カードは、作成ごとにランダムな一時トークンを発行して別々のセッションとして管理します。
+
+各PCの編集内容は各ブラウザのローカルストレージに保存されるため、**別々のPCから同時に作業しても編集内容は共有されません。** QR写真転送についても、複数セッションを同時生成して他の利用者の写真と混ざらないことを統合テストしています。
+
 ## こどもモード：スマホから写真を送る
 
 1. 「じぶんの しゃしん・マーク」で「QRでスマホから」を押す
 2. PCに表示されたQRをスマホで読む
-3. スマホで写真を撮る、または選ぶ
+3. 「写真フォルダから選ぶ」または「カメラで撮る」を選ぶ
 4. 「パソコンへ送る」を押す
 5. PCのプレビューへ自動反映
 
@@ -76,6 +119,7 @@ Windowsは `start-local.bat`、macOS / Linuxは `./start-local.command` でも�
 - インターネットへのポート開放はしないでください。
 - QR URL自体が一時的な受け取り鍵です。第三者へ共有しないでください。
 - 写真・HTML・カードはクラウドやDBへ保存せず、実行中プロセスのメモリだけに保持します。
+- サービスの再起動・PC再起動時には一時QRセッションは消えます。編集内容そのものは各ブラウザ側に残ります。
 - 子どもの写真を扱うため、保護者・先生の管理下で利用してください。
 
 詳しくは [`SECURITY.md`](./SECURITY.md) を参照してください。
@@ -88,6 +132,7 @@ node --check adult.js
 python3 -m py_compile server.py
 python3 scripts/check_static.py
 python3 scripts/test_server.py
+bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh
 ```
 
 ## 主なファイル
@@ -101,6 +146,8 @@ adult.html      # カスタムモード
 adult.css
 adult.js
 server.py       # LANサーバー / QR / 一時共有
+scripts/install-ubuntu-service.sh   # Ubuntu常駐化
+scripts/uninstall-ubuntu-service.sh # Ubuntuサービス削除
 vendor_py/      # qrcode同梱
 ```
 
