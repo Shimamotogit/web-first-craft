@@ -36,7 +36,7 @@ jobs:
           text = text.replace(old_body, new_body, 1)
 
           old_js = "const token={token_json};const input=document.getElementById('photo');const cameraInput=document.getElementById('cameraPhoto');const preview=document.getElementById('preview');const send=document.getElementById('send');const status=document.getElementById('status');let photo='';"
-          new_js = "const token={token_json};const back=document.getElementById('back');const input=document.getElementById('photo');const cameraInput=document.getElementById('cameraPhoto');const preview=document.getElementById('preview');const send=document.getElementById('send');const status=document.getElementById('status');let photo='';\nback.addEventListener('click',()=>{if(window.history.length>1){window.history.back();return;}window.close();setTimeout(()=>{back.textContent='このタブを閉じてください';},150);});"
+          new_js = "const token={token_json};const back=document.getElementById('back');const input=document.getElementById('photo');const cameraInput=document.getElementById('cameraPhoto');const preview=document.getElementById('preview');const send=document.getElementById('send');const status=document.getElementById('status');let photo='';\nback.addEventListener('click',()=>{{if(window.history.length>1){{window.history.back();return;}}window.close();setTimeout(()=>{{back.textContent='このタブを閉じてください';}},150);}});"
           if old_js not in text:
               raise SystemExit('JS anchor not found')
           text = text.replace(old_js, new_js, 1)
