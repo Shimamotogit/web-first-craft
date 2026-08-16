@@ -1,0 +1,162 @@
+name: Apply static review fixes
+
+on:
+  push:
+    paths:
+      - .github/workflows/apply-static-review-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Apply reviewed fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'anchor not found in {path}: {old[:100]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # 1) Bound LAN session count/memory and let shared custom pages run only their inline JS in a sandbox.
+          replace_once(
+              'server/app.py',
+              'MAX_HTML_BYTES = 3 * 1024 * 1024\nSAFE_STATIC = {',
+              'MAX_HTML_BYTES = 3 * 1024 * 1024\nMAX_ACTIVE_SESSIONS = 96\nMAX_SESSION_MEMORY_BYTES = 96 * 1024 * 1024\nSAFE_STATIC = {'
+          )
+
+          replace_once(
+              'server/app.py',
+              '''def cleanup_expired() -> None:\n    current = now()\n    with sessions_lock:\n        for store in (photo_sessions, share_sessions, card_sessions):\n            expired = [key for key, value in store.items() if value["expires_at"] <= current]\n            for key in expired:\n                del store[key]\n''',
+              '''def _cleanup_expired_locked() -> None:\n    current = now()\n    for store in (photo_sessions, share_sessions, card_sessions):\n        expired = [key for key, value in store.items() if value["expires_at"] <= current]\n        for key in expired:\n            del store[key]\n\n\ndef session_payload_bytes(item: dict) -> int:\n    total = 0\n    for key in ("photo", "html"):\n        value = item.get(key)\n        if isinstance(value, str):\n            total += len(value.encode("utf-8"))\n    image = item.get("image")\n    if isinstance(image, (bytes, bytearray)):\n        total += len(image)\n    return total\n\n\ndef reserve_session_capacity_locked(additional_bytes: int = 0, protected: tuple | None = None, extra_session: bool = False) -> bool:\n    _cleanup_expired_locked()\n    stores = (photo_sessions, share_sessions, card_sessions)\n    records = [(store, key, item) for store in stores for key, item in store.items()]\n    used = sum(session_payload_bytes(item) for _, _, item in records)\n    target_count = len(records) + (1 if extra_session else 0)\n    candidates = sorted(\n        (record for record in records if protected is None or not (record[0] is protected[0] and record[1] == protected[1])),\n        key=lambda record: record[2].get("created_at", 0),\n    )\n    while target_count > MAX_ACTIVE_SESSIONS or used + additional_bytes > MAX_SESSION_MEMORY_BYTES:\n        if not candidates:\n            return False\n        store, key, item = candidates.pop(0)\n        used -= session_payload_bytes(item)\n        target_count -= 1\n        store.pop(key, None)\n    return True\n\n\ndef cleanup_expired() -> None:\n    with sessions_lock:\n        _cleanup_expired_locked()\n'''
+          )
+
+          replace_once(
+              'server/app.py',
+              'self.send_json({"enabled": True, "baseUrl": self.base_url, "expiresMinutes": {"photo": 20, "share": 30, "card": 30}})',
+              'self.send_json({"enabled": True, "baseUrl": self.base_url, "expiresMinutes": {"photo": 20, "share": 30, "card": 30}, "limits": {"activeSessions": MAX_ACTIVE_SESSIONS, "memoryMB": MAX_SESSION_MEMORY_BYTES // (1024 * 1024)}})'
+          )
+
+          replace_once(
+              'server/app.py',
+              '''            headers = {\n                "Cache-Control": "no-store",\n                "Content-Security-Policy": "default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'",\n            }\n            if action == "download":\n                encoded = quote(item["filename"])\n                headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded}"\n''',
+              '''            headers = {"Cache-Control": "no-store"}\n            if action == "view":\n                headers["Content-Security-Policy"] = (\n                    "default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:; "\n                    "script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; "\n                    "form-action 'none'; sandbox allow-scripts"\n                )\n            else:\n                encoded = quote(item["filename"])\n                headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded}"\n'''
+          )
+
+          replace_once(
+              'server/app.py',
+              '''            with sessions_lock:\n                photo_sessions[token] = {"created_at": now(), "expires_at": expires_at, "photo": ""}\n''',
+              '''            with sessions_lock:\n                if not reserve_session_capacity_locked(extra_session=True):\n                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)\n                    return\n                photo_sessions[token] = {"created_at": now(), "expires_at": expires_at, "photo": ""}\n'''
+          )
+
+          replace_once(
+              'server/app.py',
+              '''                if not item or item["expires_at"] <= now():\n                    self.send_json({"error": "expired"}, HTTPStatus.GONE)\n                    return\n                item["photo"] = photo\n''',
+              '''                if not item or item["expires_at"] <= now():\n                    self.send_json({"error": "expired"}, HTTPStatus.GONE)\n                    return\n                old_size = session_payload_bytes(item)\n                new_size = len(photo.encode("utf-8"))\n                if not reserve_session_capacity_locked(max(0, new_size - old_size), protected=(photo_sessions, token)):\n                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)\n                    return\n                item["photo"] = photo\n'''
+          )
+
+          replace_once(
+              'server/app.py',
+              '''            with sessions_lock:\n                share_sessions[token] = {"html": markup, "filename": filename, "nickname": nickname, "created_at": now(), "expires_at": expires_at}\n''',
+              '''            with sessions_lock:\n                if not reserve_session_capacity_locked(len(markup.encode("utf-8")), extra_session=True):\n                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)\n                    return\n                share_sessions[token] = {"html": markup, "filename": filename, "nickname": nickname, "created_at": now(), "expires_at": expires_at}\n'''
+          )
+
+          replace_once(
+              'server/app.py',
+              '''            with sessions_lock:\n                card_sessions[token] = {"image": raw, "filename": filename, "title": title, "created_at": now(), "expires_at": expires_at}\n''',
+              '''            with sessions_lock:\n                if not reserve_session_capacity_locked(len(raw), extra_session=True):\n                    self.send_json({"error": "server-busy"}, HTTPStatus.SERVICE_UNAVAILABLE)\n                    return\n                card_sessions[token] = {"image": raw, "filename": filename, "title": title, "created_at": now(), "expires_at": expires_at}\n'''
+          )
+
+          # 2) Strengthen static DOM reference checks and prevent legacy LAN guidance/Page assumptions.
+          replace_once(
+              'tests/check_static.py',
+              '''        refs=set(re.findall(r'\\$\\(\\\"#([A-Za-z0-9_-]+)\\\"\\)', text))\n        missing=sorted(refs-ids)\n''',
+              '''        refs=set(re.findall(r"\\$\\(\\s*[\\\"']#([A-Za-z0-9_-]+)[\\\"']\\s*\\)", text))\n        refs.update(re.findall(r"getElementById\\(\\s*[\\\"']([A-Za-z0-9_-]+)[\\\"']\\s*\\)", text))\n        missing=sorted(refs-ids)\n'''
+          )
+          replace_once(
+              'tests/check_static.py',
+              '''    child=(WEB/"js/child.js").read_text(encoding="utf-8")\n    adult=(WEB/"js/adult.js").read_text(encoding="utf-8")\n''',
+              '''    child=(WEB/"js/child.js").read_text(encoding="utf-8")\n    adult=(WEB/"js/adult.js").read_text(encoding="utf-8")\n    for js_path, text in ((WEB/"js/child.js", child), (WEB/"js/adult.js", adult)):\n        if "server.py" in text:\n            fail(f"{js_path.name}: legacy server.py QR guidance remains")\n    index_html=(WEB/"index.html").read_text(encoding="utf-8")\n    if 'href="/"' in index_html:\n        fail("index.html: root-absolute home link breaks GitHub Pages subpaths")\n    if "このパソコンで動作中" in index_html:\n        fail("index.html: LAN state must not be claimed before /api/config succeeds")\n    pages=(ROOT/".github/workflows/pages.yml").read_text(encoding="utf-8")\n    if "\\n  push:" in pages:\n        fail("pages.yml: Pages deployment must be manual unless Pages is explicitly enabled")\n'''
+          )
+
+          # 3) Make the top page neutral until LAN mode is actually detected; keep Pages-relative navigation valid.
+          replace_once('web/index.html', 'href="/" aria-label="じぶんページ工房 ホーム"', 'href="index.html" aria-label="じぶんページ工房 ホーム"')
+          replace_once('web/index.html', '<div class="lan-chip" id="lanChip"><span></span> このパソコンで動作中</div>', '<div class="lan-chip" id="lanChip"><span></span> QR機能を確認中</div>')
+          replace_once(
+              'web/index.html',
+              '''    }).catch(()=>{});\n''',
+              '''    }).catch(()=>{\n      const chip=document.getElementById('lanChip');\n      chip.classList.remove('ready');\n      chip.innerHTML='<span></span> 静的モード：QRはLAN版で使えます';\n    });\n'''
+          )
+
+          # 4) Do not auto-run a known-unconfigured Pages deployment on every push.
+          Path('.github/workflows/pages.yml').write_text('''name: Deploy static site to Pages\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: read\n  pages: write\n  id-token: write\n\nconcurrency:\n  group: pages\n  cancel-in-progress: true\n\njobs:\n  deploy:\n    environment:\n      name: github-pages\n      url: ${{ steps.deployment.outputs.page_url }}\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v6\n      - name: Configure Pages\n        uses: actions/configure-pages@v5\n      - name: Upload static files\n        uses: actions/upload-pages-artifact@v4\n        with:\n          path: web\n      - name: Deploy to GitHub Pages\n        id: deployment\n        uses: actions/deploy-pages@v4\n''', encoding='utf-8')
+
+          # 5) Display the same LAN URL that the running server actually puts into QR codes.
+          replace_once(
+              'scripts/systemd/install.sh',
+              '''LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"\necho\necho "起動しました。ターミナルを閉じても動き続けます。"\necho "このPC: http://localhost:$PORT"\nif [[ -n "$LAN_IP" ]]; then\n  echo "同じLAN: http://$LAN_IP:$PORT"\nfi\n''',
+              '''LAN_URL="$(\n  "$PYTHON" - "$PORT" <<'PYURL' 2>/dev/null || true\nimport json\nimport sys\nimport time\nfrom urllib.request import urlopen\nport = sys.argv[1]\nfor _ in range(20):\n    try:\n        with urlopen(f"http://127.0.0.1:{port}/api/config", timeout=0.5) as response:\n            data = json.load(response)\n        base_url = str(data.get("baseUrl", ""))\n        if base_url:\n            print(base_url)\n            break\n    except Exception:\n        time.sleep(0.15)\nPYURL\n)"\necho\necho "起動しました。ターミナルを閉じても動き続けます。"\necho "このPC: http://localhost:$PORT"\nif [[ -n "$LAN_URL" ]]; then\n  echo "同じLAN: $LAN_URL"\nelse\n  echo "同じLANのURLを取得できませんでした。http://localhost:$PORT/api/config の baseUrl を確認してください。" >&2\nfi\n'''
+          )
+
+          # 6) Documentation follows the actual runtime/security model and current paths.
+          readme = Path('README.md')
+          text = readme.read_text(encoding='utf-8')
+          text = text.replace('各PCの編集内容は各ブラウザのローカルストレージに保存されるため、**別々のPCから同時に作業しても編集内容は共有されません。** QR写真転送についても、複数セッションを同時生成して他の利用者の写真と混ざらないことを統合テストしています。', '各PCの編集内容は各ブラウザのローカルストレージに保存されるため、**別々のPCから同時に作業しても編集内容は共有されません。** QR写真転送についても、複数セッションを同時生成して他の利用者の写真と混ざらないことを統合テストしています。LANサーバーは一時セッション数と総メモリ使用量にも上限を設け、古いセッションから整理してメモリの増え続けを防ぎます。')
+          text = text.replace('スマートフォンはパソコンと同じWi-Fiへ接続してください。', 'スマートフォンはパソコンと同じWi-Fiへ接続してください。QR機能を使うときは、GitHub PagesやHTMLファイル直開きではなく、起動時に表示された `このパソコン` / `同じLAN` のURLから開いてください。')
+          text = text.replace('bash -n scripts/install-ubuntu-service.sh scripts/uninstall-ubuntu-service.sh', 'bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh\nCHECK_ONLY=1 bash scripts/systemd/install.sh')
+          text = text.replace('`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。', '`web/` だけが静的サイトの公開対象です。`archive/` は参考用で、LANサーバーやGitHub Pagesからは配信しません。GitHub Pagesのデプロイは自動実行せず、Pagesを有効化した場合だけActionsから手動実行します。Pages版ではLANバックエンドがないためQR機能は利用できません。')
+          readme.write_text(text, encoding='utf-8')
+
+          security = Path('SECURITY.md')
+          text = security.read_text(encoding='utf-8')
+          text = text.replace('- 閲覧レスポンスにはContent Security Policyを付け、外部通信を許可しません。カスタムモードの完成HTMLでは、そのファイル内に埋め込んだ学習用スクリプトだけを実行します。', '- 閲覧レスポンスにはContent Security Policyを付け、外部通信・フォーム送信・外部オブジェクトを許可しません。カスタムモードの完成HTMLは `sandbox allow-scripts` 内で開き、そのファイル内に埋め込んだ学習用JavaScriptだけを実行します。\n- 一時セッションは個別の有効期限に加え、サーバー全体でセッション数とメモリ使用量に上限を設けます。上限に近づいた場合は古い一時セッションから整理します。')
+          security.write_text(text, encoding='utf-8')
+
+          # 7) Extend integration tests for CSP behavior and bounded session growth.
+          replace_once(
+              'tests/test_server.py',
+              'cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30',
+              'cfg=json.load(r);assert cfg["enabled"] is True and cfg["expiresMinutes"]["card"]==30 and cfg["limits"]["activeSessions"]==kobo.MAX_ACTIVE_SESSIONS'
+          )
+          replace_once(
+              'tests/test_server.py',
+              '''        markup='<!doctype html><html lang="ja"><body><h1>test</h1></body></html>'\n        with request(base,"/api/shares",{"html":markup,"filename":"test.html","nickname":"test"}) as r: share=json.load(r)\n        st=urlparse(share["shareUrl"]).path.split("/")[-1]\n        with request(base,f"/api/shares/{st}/download") as r: assert r.read().decode()==markup and "attachment" in r.headers.get("Content-Disposition","")\n''',
+              '''        markup='<!doctype html><html lang="ja"><body><h1>test</h1><button id="b">open</button><script>document.getElementById("b").textContent="ok"</script></body></html>'\n        with request(base,"/api/shares",{"html":markup,"filename":"test.html","nickname":"test"}) as r: share=json.load(r)\n        st=urlparse(share["shareUrl"]).path.split("/")[-1]\n        with request(base,f"/api/shares/{st}/view") as r:\n            assert r.read().decode()==markup\n            csp=r.headers.get("Content-Security-Policy","")\n            assert "script-src 'unsafe-inline'" in csp and "sandbox allow-scripts" in csp and "connect-src 'none'" in csp\n        with request(base,f"/api/shares/{st}/download") as r: assert r.read().decode()==markup and "attachment" in r.headers.get("Content-Disposition","")\n'''
+          )
+          replace_once(
+              'tests/test_server.py',
+              '''        with request(base,f"/api/cards/{ct}/download") as r: assert "attachment" in r.headers.get("Content-Disposition","")\n        print("OK: static pages, QR, gallery/camera photo, concurrent isolated sessions, HTML share, PNG card share")\n''',
+              '''        with request(base,f"/api/cards/{ct}/download") as r: assert "attachment" in r.headers.get("Content-Disposition","")\n\n        # A busy workshop cannot grow unbounded session metadata in memory.\n        original_limit=kobo.MAX_ACTIVE_SESSIONS\n        try:\n            kobo.MAX_ACTIVE_SESSIONS=12\n            for _ in range(20):\n                with request(base,"/api/photo-sessions",{}) as r: assert json.load(r)["token"]\n            with kobo.sessions_lock:\n                total=len(kobo.photo_sessions)+len(kobo.share_sessions)+len(kobo.card_sessions)\n            assert total<=12\n        finally:\n            kobo.MAX_ACTIVE_SESSIONS=original_limit\n        print("OK: static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded sessions, PNG card share")\n'''
+          )
+          PY
+
+      - name: Validate JavaScript and Python
+        run: |
+          node --check web/js/child.js
+          node --check web/js/adult.js
+          python3 -m py_compile server/app.py tests/check_static.py tests/test_server.py
+          python3 tests/check_static.py
+          python3 tests/test_server.py
+
+      - name: Validate launch and systemd scripts
+        run: |
+          bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
+          CHECK_ONLY=1 bash scripts/systemd/install.sh
+
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/app.py tests/check_static.py tests/test_server.py web/index.html scripts/systemd/install.sh .github/workflows/pages.yml README.md SECURITY.md
+          git commit -m "Apply static review fixes"
+          git push origin HEAD:main
