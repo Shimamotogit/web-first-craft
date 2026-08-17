@@ -96,6 +96,12 @@ def main() -> None:
     for marker in ("pageWidth", "headingSize", "backgroundR", "backgroundG", "backgroundB", "jsReveal", "jsRoulette", "jsPhotoZoom"):
         if f'id="{marker}"' not in adult_html:
             fail(f"adult custom lab is missing {marker}")
+    for marker in ("adultPhotoStatus", "adultHelpDialog"):
+        if f'id="{marker}"' not in adult_html:
+            fail(f"adult mode feedback UI is missing {marker}")
+    for marker in ("applyProfilePhoto", "MAX_PROFILE_DATA_URL", "openScoreHelp", "setHelpOpenState"):
+        if marker not in adult:
+            fail(f"adult mode feedback behavior is missing {marker}")
     for legacy in ("静かな時間", "順番に表示", "STAGGER", "お題", "難易度"):
         if legacy in adult_html:
             fail(f"adult mode still contains legacy challenge UI: {legacy}")

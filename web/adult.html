@@ -12,7 +12,7 @@
   <header class="adult-header">
     <a href="index.html" class="adult-brand"><span>{ }</span><div><small>WEB WORKSHOP</small><strong>じぶんページ工房</strong></div></a>
     <div class="header-middle"><b>CUSTOM MODE</b><span>数字を変えて、CSSの意味を体感する</span></div>
-    <button id="adultHelp" type="button">採点ルール</button>
+    <button id="adultHelp" type="button" aria-haspopup="dialog" aria-controls="adultHelpDialog" aria-expanded="false">採点ルール</button>
   </header>
 
   <main class="adult-shell">
@@ -52,7 +52,7 @@
           <div class="field-grid"><label><span>見出し</span><input id="extraTitle" maxlength="32" placeholder="例：最近つくっているもの"></label><label><span>短い説明</span><input id="extraText" maxlength="100" placeholder="例：JavaScriptでミニゲームを作っています。"></label></div>
         </div>
 
-        <fieldset class="photo-field"><legend>プロフィール写真 <b>+5</b></legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>PHOTO</span></div><div><label class="file-button" for="adultPhotoInput">このPCから画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="removeAdultPhoto">画像を外す</button><p>LANモードなら、同じWi-Fiのスマホから写真を送れます。</p></div></div></fieldset>
+        <fieldset class="photo-field"><legend>プロフィール写真 <b>+5</b></legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>PHOTO</span></div><div><label class="file-button" for="adultPhotoInput">このPCから画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="removeAdultPhoto">画像を外す</button><p id="adultPhotoStatus" class="photo-status" role="status" aria-live="polite">プロフィール写真はまだ設定されていません。</p><p>公開URLまたはLANから、スマホの写真も送れます。</p></div></div></fieldset>
         <div class="panel-nav"><span></span><button type="button" class="primary next" data-next="1">CSS LABへ →</button></div>
       </section>
 
