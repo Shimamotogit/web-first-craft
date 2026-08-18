@@ -20,10 +20,12 @@ jobs:
       - name: Check static structure and privacy boundaries
         run: python3 tests/check_static.py
       - name: Check Python syntax
-        run: python3 -m py_compile server/app.py tests/test_server.py tests/check_static.py
+        run: python3 -m py_compile server/app.py tests/test_server.py tests/test_adult_browser.py tests/check_static.py
       - name: Check launch and Ubuntu service scripts
         run: |
           bash -n scripts/launch/start-local.command scripts/systemd/install.sh scripts/systemd/uninstall.sh
           CHECK_ONLY=1 bash scripts/systemd/install.sh
       - name: Test LAN transfer server
         run: python3 tests/test_server.py
+      - name: Test custom mode in real browser
+        run: python3 tests/test_adult_browser.py
