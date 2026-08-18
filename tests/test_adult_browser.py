@@ -41,16 +41,17 @@ async function waitFor(fn, label, timeout=9000) {
 function assert(cond, message) { if (!cond) throw new Error(message); }
 function event(type){ return new Event(type,{bubbles:true}); }
 function setInput(el,value,type='input'){ el.value=value; el.dispatchEvent(event(type)); }
-async function waitFrame(frame,label){
-  if(frame.contentDocument && frame.contentDocument.readyState === 'complete') return;
-  await new Promise((resolve,reject)=>{
-    frame.addEventListener('load',resolve,{once:true});
-    setTimeout(()=>reject(new Error(label + ' load timeout')),9000);
-  });
+async function waitFrameReady(frame,label,searchMarker=''){
+  await waitFor(()=>{
+    try{
+      const url=new URL(frame.contentWindow.location.href);
+      return url.pathname.endsWith('/adult.html') && (!searchMarker || url.search.includes(searchMarker)) && frame.contentDocument?.readyState==='complete';
+    }catch(_){return false;}
+  }, label + ' navigation', 10000);
 }
 (async () => {
   const frame = document.getElementById('frame');
-  await waitFrame(frame,'adult.html');
+  await waitFrameReady(frame,'adult.html');
   let d = frame.contentDocument;
   assert(d, 'adult document unavailable');
 
@@ -147,12 +148,8 @@ async function waitFrame(frame,label){
     background:null, accent:{r:'bad',g:999,b:-20}, text:'bad',
     jsReveal:'true', jsRoulette:1, jsPhotoZoom:null, touched:[null,'pageWidth','unknown'], photo:'not-an-image'
   }));
-  const reload = new Promise((resolve,reject)=>{
-    frame.addEventListener('load',resolve,{once:true});
-    setTimeout(()=>reject(new Error('stale-state reload timeout')),9000);
-  });
   frame.src='adult.html?stale-state=1';
-  await reload;
+  await waitFrameReady(frame,'stale-state','stale-state=1');
   d=frame.contentDocument;
   await waitFor(()=>d.querySelector('#adultPreview')?.srcdoc, 'preview after stale state');
   preview=d.querySelector('#adultPreview');

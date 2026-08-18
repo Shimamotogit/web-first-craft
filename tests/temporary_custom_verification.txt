@@ -1,72 +1,84 @@
 status=1
 === JavaScript syntax ===
+=== test Python syntax ===
 === static checks ===
 OK: 3 pages, 111 unique ids, child kana/PC input + static card, adult px/RGB lab + scoring present
 === server integration ===
-[18/Aug/2026 16:53:00] "GET /api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /healthz HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "GET /my-site/api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /my-site/api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "GET /my-site/phone/photo/d31JlVH-ambujC7-5EnLPVKs HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /my-site/api/photo-sessions/d31JlVH-ambujC7-5EnLPVKs/photo HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /my-site/api/photo-sessions/d31JlVH-ambujC7-5EnLPVKs HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /my-site/ HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET / HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /child.html HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /adult.html HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /css/main.css HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /css/child.css HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /css/adult.css HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /js/child.js HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /js/adult.js HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/qr?text=http%3A//127.0.0.1%3A33919/card/example HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "GET /phone/photo/qRGezekdHf-8otEItMluTJq0 HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions/qRGezekdHf-8otEItMluTJq0/photo HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/photo-sessions/qRGezekdHf-8otEItMluTJq0 HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions/mYxVyZhe7N88cSacEQfj-ljZ/photo HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/photo-sessions/Nfzb0r9mjLSoUGQAe5pnALBq HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/photo-sessions/mYxVyZhe7N88cSacEQfj-ljZ HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/shares HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "GET /api/shares/pYbVDMqvMBZPf52CGB3h9JR8/view HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/shares/pYbVDMqvMBZPf52CGB3h9JR8/download HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/cards HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "GET /card/RX-4SXaNaX8XUCIRvRSdTm9L HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/cards/RX-4SXaNaX8XUCIRvRSdTm9L/view HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "GET /api/cards/RX-4SXaNaX8XUCIRvRSdTm9L/download HTTP/1.1" 200 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 503 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 429 -
+[18/Aug/2026 16:54:32] "GET /api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /healthz HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "GET /my-site/api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /my-site/api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "GET /my-site/phone/photo/Iny5JIP0vOaghApnYbGJv9z1 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /my-site/api/photo-sessions/Iny5JIP0vOaghApnYbGJv9z1/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /my-site/api/photo-sessions/Iny5JIP0vOaghApnYbGJv9z1 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /my-site/ HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET / HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /child.html HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /adult.html HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /css/main.css HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /css/child.css HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /js/child.js HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/qr?text=http%3A//127.0.0.1%3A46281/card/example HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "GET /phone/photo/pLQdaTAFzPuPy_py_TWdoWT0 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions/pLQdaTAFzPuPy_py_TWdoWT0/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/photo-sessions/pLQdaTAFzPuPy_py_TWdoWT0 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions/XdkrZBW2tUlao7ltRivNE117/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/photo-sessions/EeYlHv9IL8MPaG1R4Dulm6E1 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/photo-sessions/XdkrZBW2tUlao7ltRivNE117 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/shares HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "GET /api/shares/dGmlqO0zPjj1t1DJ_ReguDJj/view HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/shares/dGmlqO0zPjj1t1DJ_ReguDJj/download HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/cards HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "GET /card/YVKVJAugL3_vxf9xvjqaXqA9 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/cards/YVKVJAugL3_vxf9xvjqaXqA9/view HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "GET /api/cards/YVKVJAugL3_vxf9xvjqaXqA9/download HTTP/1.1" 200 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 503 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:32] "POST /api/photo-sessions HTTP/1.1" 429 -
 OK: local/public URL generation, static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded/rate-limited sessions, PNG card share
 === custom browser regression ===
-[18/Aug/2026 16:53:08] "GET /web-first-craft/__adult_browser_smoke.html HTTP/1.1" 200 -
-[18/Aug/2026 16:53:08] "GET /web-first-craft/adult.html HTTP/1.1" 200 -
-[18/Aug/2026 16:53:08] "GET /web-first-craft/js/adult.js HTTP/1.1" 200 -
-[18/Aug/2026 16:53:08] "GET /web-first-craft/css/adult.css HTTP/1.1" 200 -
-[18/Aug/2026 16:53:08] "GET /web-first-craft/api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:53:08] "GET /favicon.ico HTTP/1.1" 404 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/__adult_browser_smoke.html HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/adult.html HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /favicon.ico HTTP/1.1" 404 -
+[18/Aug/2026 16:54:34] "POST /web-first-craft/api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/api/qr?text=http%3A%2F%2F127.0.0.1%3A40455%2Fweb-first-craft%2Fphone%2Fphoto%2FccPw3miEPf9syUn6kEvBxCnp&t=1787072074815 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "POST /web-first-craft/api/photo-sessions/ccPw3miEPf9syUn6kEvBxCnp/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/api/photo-sessions/ccPw3miEPf9syUn6kEvBxCnp HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "POST /web-first-craft/api/shares HTTP/1.1" 201 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/api/qr?text=http%3A%2F%2F127.0.0.1%3A40455%2Fweb-first-craft%2Fshare%2F6KqyHxZpYEo8HlJjlzYH2XcM&t=1787072077065 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/adult.html?stale-state=1 HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:54:34] "GET /web-first-craft/api/config HTTP/1.1" 200 -
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <title>custom mode browser regression</title>
-</head><body data-result="FAIL"><pre id="result">FAIL: Error: timeout: initial preview
-    at waitFor (http://127.0.0.1:39977/web-first-craft/__adult_browser_smoke.html:16:9)
-    at async http://127.0.0.1:39977/web-first-craft/__adult_browser_smoke.html:35:3</pre>
-<iframe id="frame" src="adult.html" style="width:1200px;height:900px"></iframe>
+</head><body data-result="FAIL"><pre id="result">FAIL: Error: timeout: stale-state navigation
+    at waitFor (http://127.0.0.1:40455/web-first-craft/__adult_browser_smoke.html:16:9)
+    at async waitFrameReady (http://127.0.0.1:40455/web-first-craft/__adult_browser_smoke.html:22:3)
+    at async http://127.0.0.1:40455/web-first-craft/__adult_browser_smoke.html:129:3</pre>
+<iframe id="frame" src="adult.html?stale-state=1" style="width:1200px;height:900px"></iframe>
 <script>
 const out = document.getElementById('result');
 const STORAGE_KEY = 'jibun-page-kobo-adult-v3';
@@ -82,16 +94,17 @@ async function waitFor(fn, label, timeout=9000) {
 function assert(cond, message) { if (!cond) throw new Error(message); }
 function event(type){ return new Event(type,{bubbles:true}); }
 function setInput(el,value,type='input'){ el.value=value; el.dispatchEvent(event(type)); }
-async function waitFrame(frame,label){
-  if(frame.contentDocument && frame.contentDocument.readyState === 'complete') return;
-  await new Promise((resolve,reject)=>{
-    frame.addEventListener('load',resolve,{once:true});
-    setTimeout(()=>reject(new Error(label + ' load timeout')),9000);
-  });
+async function waitFrameReady(frame,label,searchMarker=''){
+  await waitFor(()=>{
+    try{
+      const url=new URL(frame.contentWindow.location.href);
+      return url.pathname.endsWith('/adult.html') && (!searchMarker || url.search.includes(searchMarker)) && frame.contentDocument?.readyState==='complete';
+    }catch(_){return false;}
+  }, label + ' navigation', 10000);
 }
 (async () => {
   const frame = document.getElementById('frame');
-  await waitFrame(frame,'adult.html');
+  await waitFrameReady(frame,'adult.html');
   let d = frame.contentDocument;
   assert(d, 'adult document unavailable');
 
@@ -188,12 +201,8 @@ async function waitFrame(frame,label){
     background:null, accent:{r:'bad',g:999,b:-20}, text:'bad',
     jsReveal:'true', jsRoulette:1, jsPhotoZoom:null, touched:[null,'pageWidth','unknown'], photo:'not-an-image'
   }));
-  const reload = new Promise((resolve,reject)=>{
-    frame.addEventListener('load',resolve,{once:true});
-    setTimeout(()=>reject(new Error('stale-state reload timeout')),9000);
-  });
   frame.src='adult.html?stale-state=1';
-  await reload;
+  await waitFrameReady(frame,'stale-state','stale-state=1');
   d=frame.contentDocument;
   await waitFor(()=>d.querySelector('#adultPreview')?.srcdoc, 'preview after stale state');
   preview=d.querySelector('#adultPreview');
@@ -212,30 +221,33 @@ async function waitFrame(frame,label){
 });
 </script>
 </body></html>
-[2269:2292:0818/165304.992128:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2292:0818/165305.001436:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2292:0818/165305.389059:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2292:0818/165305.760756:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2269:0818/165307.206852:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2269:0818/165307.206908:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2292:0818/165307.206927:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2292:0818/165307.206939:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2269:0818/165307.230307:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2269:0818/165307.255286:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2269:0818/165307.426424:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2269:0818/165307.434235:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2292:0818/165307.434438:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2269:0818/165307.577126:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
-[2269:2269:0818/165307.577393:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2292:0818/165307.577608:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2269:0818/165307.671559:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2269:2292:0818/165307.671640:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2269:2269:0818/165307.726855:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2180:0818/165433.928279:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2180:0818/165433.928735:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2180:0818/165434.035281:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2180:0818/165434.051848:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2158:0818/165434.107194:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2180:0818/165434.107263:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2158:0818/165434.107283:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2180:0818/165434.107313:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2158:0818/165434.108502:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2158:0818/165434.110040:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2158:0818/165434.138226:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2158:0818/165434.138353:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2180:0818/165434.141486:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2158:0818/165434.177970:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2158:0818/165434.179412:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+[2158:2180:0818/165434.179425:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2158:0818/165434.203574:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2180:0818/165434.203735:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2158:2158:0818/165434.232553:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2158:2158:0818/165434.731116:ERROR:mojo/public/cpp/bindings/lib/interface_endpoint_client.cc:748] Message 2 rejected by interface blink.mojom.Widget
+[2158:2158:0818/165434.731276:ERROR:mojo/public/cpp/bindings/lib/interface_endpoint_client.cc:748] Message 6 rejected by interface blink.mojom.WidgetHost
+[2158:2158:0818/165434.731333:ERROR:mojo/public/cpp/bindings/lib/interface_endpoint_client.cc:748] Message 7 rejected by interface blink.mojom.WidgetHost
 
 
 Traceback (most recent call last):
-  File "/home/runner/work/web-first-craft/web-first-craft/tests/test_adult_browser.py", line 229, in <module>
+  File "/home/runner/work/web-first-craft/web-first-craft/tests/test_adult_browser.py", line 226, in <module>
     main()
-  File "/home/runner/work/web-first-craft/web-first-craft/tests/test_adult_browser.py", line 218, in main
+  File "/home/runner/work/web-first-craft/web-first-craft/tests/test_adult_browser.py", line 215, in main
     raise RuntimeError("custom mode browser regression failed")
 RuntimeError: custom mode browser regression failed
