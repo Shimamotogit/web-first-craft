@@ -12,25 +12,37 @@
     background:{r:245,g:241,b:234},accent:{r:37,g:94,b:120},text:{r:34,g:39,b:43},
     jsReveal:false,jsRoulette:false,jsPhotoZoom:false,touched:[]
   };
-  const state=normalizeState({...defaults,...loadState()});
-  let currentStep=0,transferInfo={enabled:false,baseUrl:""},photoToken="",photoTimer=0,toastTimer=0;
-  const numericKeys=["pageWidth","headingSize","bodySize","photoSize","pagePadding","sectionGap","cornerRadius","borderWidth","shadowSize"];
+  const numericBounds={
+    pageWidth:[520,1180],headingSize:[28,96],bodySize:[12,26],photoSize:[120,360],
+    pagePadding:[12,100],sectionGap:[6,64],cornerRadius:[0,48],borderWidth:[0,8],shadowSize:[0,30]
+  };
+  const numericKeys=Object.keys(numericBounds);
   const textMap={profileName:"name",profileTagline:"tagline",profileIntro:"intro",extraTitle:"extraTitle",extraText:"extraText"};
   const cssPoints={layout:4,fontFamily:3,pageWidth:4,headingSize:4,bodySize:3,photoSize:4,pagePadding:4,sectionGap:3,cornerRadius:4,borderWidth:3,shadowSize:3,background:2,accent:2,text:2};
   const MAX_PROFILE_DATA_URL=850000;
+  const state=normalizeState(loadState());
+  let currentStep=0,transferInfo={enabled:false,baseUrl:""},photoToken="",photoTimer=0,toastTimer=0;
 
   init();
 
   function init(){restoreControls();bind();renderAll();checkTransferServer();}
 
   function normalizeState(raw){
-    const out={...defaults,...raw};
-    out.favorites=Array.isArray(raw.favorites)?[raw.favorites[0]||"",raw.favorites[1]||"",raw.favorites[2]||""]:["","",""];
-    out.background={...defaults.background,...(raw.background||{})};out.accent={...defaults.accent,...(raw.accent||{})};out.text={...defaults.text,...(raw.text||{})};
-    out.touched=Array.isArray(raw.touched)?raw.touched:[];
-    numericKeys.forEach(k=>out[k]=Number.isFinite(Number(out[k]))?Number(out[k]):defaults[k]);
+    const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+    const out={...defaults};
+    for(const key of ['name','tagline','intro','extraTitle','extraText'])out[key]=typeof source[key]==='string'?source[key]:defaults[key];
+    out.favorites=Array.isArray(source.favorites)?[0,1,2].map(i=>typeof source.favorites[i]==='string'?source.favorites[i]:''):["","",""];
+    out.layout=['split','center','offset'].includes(source.layout)?source.layout:defaults.layout;
+    out.fontFamily=['sans','serif','mono'].includes(source.fontFamily)?source.fontFamily:defaults.fontFamily;
+    for(const key of numericKeys){const n=Number(source[key]),[min,max]=numericBounds[key];out[key]=Number.isFinite(n)?Math.max(min,Math.min(max,Math.round(n))):defaults[key];}
+    for(const group of ['background','accent','text']){const value=source[group]&&typeof source[group]==='object'?source[group]:{};out[group]={r:normalizeChannel(value.r,defaults[group].r),g:normalizeChannel(value.g,defaults[group].g),b:normalizeChannel(value.b,defaults[group].b)};}
+    for(const key of ['jsReveal','jsRoulette','jsPhotoZoom'])out[key]=source[key]===true;
+    out.touched=Array.isArray(source.touched)?[...new Set(source.touched.filter(key=>typeof key==='string'&&Object.prototype.hasOwnProperty.call(cssPoints,key)))]:[];
+    const photo=typeof source.photo==='string'?source.photo:'';
+    out.photo=isSafeImageDataUrl(photo)&&photo.length<=2800000?photo:'';
     return out;
   }
+  function normalizeChannel(value,fallback){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(255,Math.round(n))):fallback;}
 
   function bind(){
     $$('.adult-steps [data-step]').forEach(b=>b.addEventListener('click',()=>showStep(Number(b.dataset.step))));
@@ -135,7 +147,7 @@
 </style></head><body><main class="profile layout-${state.layout}"><section class="hero"><div class="hero-copy"><p class="eyebrow">MY PROFILE</p><h1>${name}</h1><p class="tagline">${tagline}</p><p class="intro">${intro}</p></div>${photoWrap}</section><section class="favorites">${favs.slice(0,3).map((f,i)=>`<div class="favorite"><b>LIKE ${String(i+1).padStart(2,'0')}</b><span>${f}</span></div>`).join('')}</section>${featureButtons?`<div class="interaction-bar">${featureButtons}</div>`:''}${roulette}${reveal}</main>${lightbox}${script.length?`<script>${script.join('')}<\/script>`:''}</body></html>`;
   }
 
-  async function handlePhotoUpload(event){const file=event.target.files?.[0];if(!file)return;if(!/^image\/(png|jpeg|webp)$/i.test(file.type)||file.size>12*1024*1024){showToast('12MB以下のPNG・JPEG・WebPを選んでください');event.target.value='';return;}try{const photo=await resizeProfileImage(file);applyProfilePhoto(photo,'PCから選んだ写真を反映しました');}catch(_){showToast('画像を読み込めませんでした');}}
+  async function handlePhotoUpload(event){const input=event.target,file=input.files?.[0];if(!file)return;if(!/^image\/(png|jpeg|webp)$/i.test(file.type)||file.size>12*1024*1024){showToast('12MB以下のPNG・JPEG・WebPを選んでください');input.value='';return;}try{const photo=await resizeProfileImage(file);applyProfilePhoto(photo,'PCから選んだ写真を反映しました');}catch(_){showToast('画像を読み込めませんでした');}finally{input.value='';}}
   function loadProfileImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const image=new Image();image.onerror=reject;image.onload=()=>resolve(image);image.src=String(reader.result);};reader.readAsDataURL(file);});}
   function encodeProfileImage(image,maxSize,quality){const scale=Math.min(1,maxSize/Math.max(image.width,image.height)),w=Math.max(1,Math.round(image.width*scale)),h=Math.max(1,Math.round(image.height*scale)),canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('canvas');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(image,0,0,w,h);return canvas.toDataURL('image/jpeg',quality);}
   async function resizeProfileImage(file){const image=await loadProfileImage(file),attempts=[[1000,.84],[900,.80],[800,.76],[720,.72],[640,.70],[560,.68]];let result='';for(const [maxSize,quality] of attempts){result=encodeProfileImage(image,maxSize,quality);if(result.length<=MAX_PROFILE_DATA_URL)return result;}throw new Error('too-large');}
