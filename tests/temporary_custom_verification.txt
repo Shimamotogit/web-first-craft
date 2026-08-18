@@ -3,69 +3,69 @@ status=1
 === static checks ===
 OK: 3 pages, 111 unique ids, child kana/PC input + static card, adult px/RGB lab + scoring present
 === server integration ===
-[18/Aug/2026 16:52:38] "GET /api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /healthz HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "GET /my-site/api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /my-site/api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "GET /my-site/phone/photo/0jKRe9fofiEgcABzpM9xpWKJ HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /my-site/api/photo-sessions/0jKRe9fofiEgcABzpM9xpWKJ/photo HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /my-site/api/photo-sessions/0jKRe9fofiEgcABzpM9xpWKJ HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /my-site/ HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET / HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /child.html HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /adult.html HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /css/main.css HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /css/child.css HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /css/adult.css HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /js/child.js HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /js/adult.js HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/qr?text=http%3A//127.0.0.1%3A43769/card/example HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "GET /phone/photo/2yhfhc3r1nfumEdtuDO8epJU HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions/2yhfhc3r1nfumEdtuDO8epJU/photo HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/photo-sessions/2yhfhc3r1nfumEdtuDO8epJU HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions/n1eb0mHg3jlKw2lvKg2oNZ7U/photo HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/photo-sessions/KMXjtyoopqnx10I6teskIleu HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/photo-sessions/n1eb0mHg3jlKw2lvKg2oNZ7U HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/shares HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "GET /api/shares/7KtkvjGyQWxEVqHVJpIi7vOi/view HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/shares/7KtkvjGyQWxEVqHVJpIi7vOi/download HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/cards HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "GET /card/kbbOenbL5LTMCgO7kBIxuzIX HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/cards/kbbOenbL5LTMCgO7kBIxuzIX/view HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "GET /api/cards/kbbOenbL5LTMCgO7kBIxuzIX/download HTTP/1.1" 200 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 503 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
-[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 429 -
+[18/Aug/2026 16:53:00] "GET /api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /healthz HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "GET /my-site/api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /my-site/api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "GET /my-site/phone/photo/d31JlVH-ambujC7-5EnLPVKs HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /my-site/api/photo-sessions/d31JlVH-ambujC7-5EnLPVKs/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /my-site/api/photo-sessions/d31JlVH-ambujC7-5EnLPVKs HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /my-site/ HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET / HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /child.html HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /adult.html HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /css/main.css HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /css/child.css HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /js/child.js HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/qr?text=http%3A//127.0.0.1%3A33919/card/example HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "GET /phone/photo/qRGezekdHf-8otEItMluTJq0 HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions/qRGezekdHf-8otEItMluTJq0/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/photo-sessions/qRGezekdHf-8otEItMluTJq0 HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions/mYxVyZhe7N88cSacEQfj-ljZ/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/photo-sessions/Nfzb0r9mjLSoUGQAe5pnALBq HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/photo-sessions/mYxVyZhe7N88cSacEQfj-ljZ HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/shares HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "GET /api/shares/pYbVDMqvMBZPf52CGB3h9JR8/view HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/shares/pYbVDMqvMBZPf52CGB3h9JR8/download HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/cards HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "GET /card/RX-4SXaNaX8XUCIRvRSdTm9L HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/cards/RX-4SXaNaX8XUCIRvRSdTm9L/view HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "GET /api/cards/RX-4SXaNaX8XUCIRvRSdTm9L/download HTTP/1.1" 200 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 503 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:53:00] "POST /api/photo-sessions HTTP/1.1" 429 -
 OK: local/public URL generation, static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded/rate-limited sessions, PNG card share
 === custom browser regression ===
-[18/Aug/2026 16:52:39] "GET /web-first-craft/__adult_browser_smoke.html HTTP/1.1" 200 -
-[18/Aug/2026 16:52:40] "GET /web-first-craft/adult.html HTTP/1.1" 200 -
-[18/Aug/2026 16:52:40] "GET /web-first-craft/css/adult.css HTTP/1.1" 200 -
-[18/Aug/2026 16:52:40] "GET /web-first-craft/js/adult.js HTTP/1.1" 200 -
-[18/Aug/2026 16:52:40] "GET /web-first-craft/api/config HTTP/1.1" 200 -
-[18/Aug/2026 16:52:40] "GET /favicon.ico HTTP/1.1" 404 -
+[18/Aug/2026 16:53:08] "GET /web-first-craft/__adult_browser_smoke.html HTTP/1.1" 200 -
+[18/Aug/2026 16:53:08] "GET /web-first-craft/adult.html HTTP/1.1" 200 -
+[18/Aug/2026 16:53:08] "GET /web-first-craft/js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:53:08] "GET /web-first-craft/css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:53:08] "GET /web-first-craft/api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:53:08] "GET /favicon.ico HTTP/1.1" 404 -
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <title>custom mode browser regression</title>
 </head><body data-result="FAIL"><pre id="result">FAIL: Error: timeout: initial preview
-    at waitFor (http://127.0.0.1:44571/web-first-craft/__adult_browser_smoke.html:16:9)
-    at async http://127.0.0.1:44571/web-first-craft/__adult_browser_smoke.html:35:3</pre>
+    at waitFor (http://127.0.0.1:39977/web-first-craft/__adult_browser_smoke.html:16:9)
+    at async http://127.0.0.1:39977/web-first-craft/__adult_browser_smoke.html:35:3</pre>
 <iframe id="frame" src="adult.html" style="width:1200px;height:900px"></iframe>
 <script>
 const out = document.getElementById('result');
@@ -212,25 +212,25 @@ async function waitFrame(frame,label){
 });
 </script>
 </body></html>
-[2384:2407:0818/165239.092512:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2407:0818/165239.094105:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2407:0818/165239.299550:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2407:0818/165239.353352:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2384:0818/165239.553155:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2384:0818/165239.553220:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2407:0818/165239.553287:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2407:0818/165239.553298:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2384:0818/165239.556057:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2384:0818/165239.560664:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2384:0818/165239.611439:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2384:0818/165239.615034:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2407:0818/165239.615081:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2384:0818/165239.664772:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
-[2384:2384:0818/165239.665919:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2407:0818/165239.665977:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2384:0818/165239.688655:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[2384:2407:0818/165239.688731:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[2384:2384:0818/165239.702392:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2292:0818/165304.992128:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2292:0818/165305.001436:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2292:0818/165305.389059:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2292:0818/165305.760756:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2269:0818/165307.206852:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2269:0818/165307.206908:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2292:0818/165307.206927:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2292:0818/165307.206939:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2269:0818/165307.230307:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2269:0818/165307.255286:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2269:0818/165307.426424:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2269:0818/165307.434235:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2292:0818/165307.434438:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2269:0818/165307.577126:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+[2269:2269:0818/165307.577393:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2292:0818/165307.577608:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2269:0818/165307.671559:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2269:2292:0818/165307.671640:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2269:2269:0818/165307.726855:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
 
 
 Traceback (most recent call last):
