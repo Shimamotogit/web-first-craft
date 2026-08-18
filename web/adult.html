@@ -60,7 +60,7 @@
         <div class="panel-heading"><p>STEP 02 / CSS LAB</p><h2>数字を変えて、見た目を壊してみる。</h2><span>pxは大きさ、RGBは色。値を変えるたび、右のプレビューとCSSコードが変わります。</span></div>
 
         <div class="css-lab-grid">
-          <section class="control-group"><h3>レイアウト</h3><div class="segmented" id="adultLayouts"><button class="selected" type="button" data-layout="split">左右</button><button type="button" data-layout="center">中央</button><button type="button" data-layout="offset">ずらす</button></div><label class="select-control"><span>フォント</span><select id="fontFamily"><option value="sans">ゴシック</option><option value="serif">明朝</option><option value="mono">モノスペース</option></select></label></section>
+          <section class="control-group"><h3>レイアウト</h3><div class="segmented" id="adultLayouts"><button class="selected" type="button" data-layout="split">左</button><button type="button" data-layout="center">中央</button><button type="button" data-layout="offset">右寄せ</button></div><label class="select-control"><span>フォント</span><select id="fontFamily"><option value="sans">ゴシック</option><option value="serif">明朝</option><option value="mono">モノスペース</option></select></label></section>
 
           <section class="control-group"><h3>サイズ（px）</h3>
             <div class="px-control"><label for="pageWidth">サイトの幅</label><input type="range" data-range-for="pageWidth" min="520" max="1180" step="10"><input id="pageWidth" type="number" min="520" max="1180" step="10"><b>px</b></div>
@@ -95,7 +95,7 @@
           <label class="js-feature"><input id="jsRoulette" type="checkbox"><span class="feature-number">02</span><div><strong>好きなものガチャ <b>最大 +7</b></strong><p>ボタンを押すたび「好きなもの」から1つをランダムに表示します。</p></div><code>Math.random()</code></label>
           <label class="js-feature"><input id="jsPhotoZoom" type="checkbox"><span class="feature-number">03</span><div><strong>写真を拡大 <b>最大 +6</b></strong><p>プロフィール写真をクリックすると、大きく表示して閉じられます。</p></div><code>addEventListener()</code></label>
         </div>
-        <div class="js-note"><strong>右のプレビューで実際に押して確認できます。</strong><span>選んだだけで終わりではなく、入力内容がそろっていると満点になります。</span></div>
+        <div class="js-note"><strong>右のプレビューで実際に押して確認できます。</strong><span>初期状態はOFF。機能をONにすると、その変更がそのまま得点になります。</span></div>
         <div class="export-row"><button type="button" id="adultDownload">HTMLを保存</button><button type="button" id="adultShare">QRでスマホへ送る</button></div>
         <div class="panel-nav"><button type="button" class="secondary back" data-back="1">← CSS</button><span></span></div>
       </section>
@@ -107,7 +107,7 @@
     </aside>
   </main>
 
-  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>点数は「どれだけ試したか」の目安</h2><div class="rubric"><div><b>HTML / 35</b><p>名前・自己紹介・好きなもの・追加プロフィール・写真など、ページの中身を作る。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントを初期状態から実際に操作した項目に点が入る。</p></div><div><b>JavaScript / 20</b><p>意味のある機能を選び、その機能に必要な内容も用意すると満点。</p></div></div><p>見た目の「良し悪し」を機械が決める採点ではありません。変更して、違いを確かめるほど点が増える学習用スコアです。</p></div></dialog>
+  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>デフォルトから変えた分だけ点が増える</h2><div class="rubric"><div><b>HTML / 35</b><p>空欄がデフォルト。名前・自己紹介・好きなもの・追加プロフィール・写真を入れると加点。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントがデフォルト値と違っていれば加点。元に戻すと点も戻ります。</p></div><div><b>JavaScript / 20</b><p>OFFがデフォルト。使いたい機能をONにすると加点。</p></div></div><p>対象項目を全部デフォルトから変えると100点です。見た目の良し悪しではなく「どれだけ試したか」を見る学習用スコアです。</p></div></dialog>
   <dialog id="adultQrDialog"><div class="dialog-paper qr-dialog"><button type="button" class="dialog-close" data-close="adultQrDialog">×</button><p class="dialog-kicker">SAME WI-FI</p><h2 id="adultQrTitle">スマホとつなぐ</h2><div id="adultQrBox" class="adult-qr-box">QRを準備しています…</div><p id="adultQrStatus"></p><a id="adultQrLink" href="#" target="_blank" rel="noopener" hidden>リンクを開く</a></div></dialog>
   <div id="adultToast" class="adult-toast" role="status" aria-live="polite"></div>
 </body>

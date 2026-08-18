@@ -61,6 +61,8 @@ async function waitFrameReady(frame,label,searchMarker=''){
   let preview = d.querySelector('#adultPreview');
   assert(preview.srcdoc.includes('MY PROFILE'), 'initial preview HTML missing');
   assert(d.querySelector('#scoreTips')?.children.length > 0, 'initial scoring did not render');
+  assert(d.querySelector('#totalScore').textContent === '0', 'default state must score 0');
+  assert([...d.querySelectorAll('#adultLayouts [data-layout]')].map(b=>b.textContent.trim()).join('/') === '左/中央/右寄せ', 'layout labels are not left/center/right');
 
   // Scoring help must actually open and close.
   d.querySelector('#adultHelp').click();
@@ -81,15 +83,43 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>Number(d.querySelector('#htmlScore').textContent.split('/')[0]) >= 30, 'HTML score update');
   await waitFor(()=>preview.srcdoc.includes('BROWSER TEST'), 'text in generated preview');
 
-  // CSS controls must change live preview and score.
+  // CSS controls must score only while they differ from defaults.
   d.querySelector('.adult-steps [data-step="1"]').click();
   await waitFor(()=>!d.querySelector('.adult-panel[data-panel="1"]').hidden, 'CSS panel');
-  setInput(d.querySelector('#headingSize'),'72');
-  setInput(d.querySelector('#backgroundR'),'210');
+
+  // The three layout choices must be visibly distinct: left, center, right.
+  assert(preview.srcdoc.includes('<main class="profile layout-split">'), 'default left layout missing');
+  d.querySelector('#adultLayouts [data-layout="offset"]').click();
+  await waitFor(()=>preview.srcdoc.includes('<main class="profile layout-offset">'), 'right layout class');
+  assert(preview.srcdoc.includes('.layout-offset .hero{align-items:flex-end;text-align:right}'), 'right layout CSS missing');
+  d.querySelector('#adultLayouts [data-layout="split"]').click();
+  await waitFor(()=>preview.srcdoc.includes('<main class="profile layout-split">'), 'left layout class');
+  assert(preview.srcdoc.includes('.layout-split .hero{align-items:flex-start;text-align:left}'), 'left layout CSS missing');
   d.querySelector('#adultLayouts [data-layout="center"]').click();
+
+  setInput(d.querySelector('#headingSize'),'72');
   await waitFor(()=>preview.srcdoc.includes('font-size:72px'), 'heading size in preview');
+  const scoreWithHeadingChange=Number(d.querySelector('#cssScore').textContent.split('/')[0]);
+  setInput(d.querySelector('#headingSize'),'58');
+  await waitFor(()=>preview.srcdoc.includes('font-size:58px'), 'heading reset in preview');
+  assert(Number(d.querySelector('#cssScore').textContent.split('/')[0]) === scoreWithHeadingChange-4, 'resetting a CSS value to default must remove its points');
+  setInput(d.querySelector('#headingSize'),'72');
+
+  // Change every CSS scoring target away from its default; CSS must reach 45/45.
+  setInput(d.querySelector('#fontFamily'),'serif','change');
+  setInput(d.querySelector('#pageWidth'),'900');
+  setInput(d.querySelector('#bodySize'),'17');
+  setInput(d.querySelector('#photoSize'),'260');
+  setInput(d.querySelector('#pagePadding'),'46');
+  setInput(d.querySelector('#sectionGap'),'26');
+  setInput(d.querySelector('#cornerRadius'),'20');
+  setInput(d.querySelector('#borderWidth'),'3');
+  setInput(d.querySelector('#shadowSize'),'13');
+  setInput(d.querySelector('#backgroundR'),'210');
+  setInput(d.querySelector('#accentR'),'38');
+  setInput(d.querySelector('#textR'),'35');
+  await waitFor(()=>d.querySelector('#cssScore').textContent === '45/45', 'all CSS defaults changed');
   await waitFor(()=>preview.srcdoc.includes('rgb(210, 241, 234)'), 'RGB in preview');
-  assert(Number(d.querySelector('#cssScore').textContent.split('/')[0]) > 0, 'CSS score did not increase');
 
   // PC file selection must be converted and applied to both previews.
   d.querySelector('.adult-steps [data-step="0"]').click();
@@ -104,6 +134,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>d.querySelector('#adultPhotoPreview img'), 'PC photo preview');
   assert(d.querySelector('#adultPhotoStatus').textContent.includes('反映'), 'PC photo status missing');
   await waitFor(()=>preview.srcdoc.includes('data:image/jpeg;base64,'), 'PC photo in generated preview');
+  await waitFor(()=>d.querySelector('#htmlScore').textContent === '35/35', 'all HTML defaults changed');
 
   // JS feature selection must affect generated output and reach full JS score when prerequisites exist.
   d.querySelector('.adult-steps [data-step="2"]').click();
@@ -112,6 +143,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   }
   await waitFor(()=>d.querySelector('#jsScore').textContent === '20/20', 'JavaScript score');
   await waitFor(()=>preview.srcdoc.includes('id="revealButton"') && preview.srcdoc.includes('id="rouletteButton"') && preview.srcdoc.includes('id="photoZoom"'), 'JavaScript features in preview');
+  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'all defaults changed must score 100');
 
   // Remove the local photo, then exercise the full prefixed QR photo round trip.
   d.querySelector('.adult-steps [data-step="0"]').click();
@@ -131,6 +163,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>d.querySelector('#adultPhotoPreview img'), 'QR photo applied', 11000);
   assert(d.querySelector('#adultPhotoStatus').textContent.includes('反映'), 'QR photo status missing');
   await waitFor(()=>preview.srcdoc.includes('data:image/png;base64,'), 'QR photo in generated preview');
+  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'QR photo restore must return full score');
   await waitFor(()=>!d.querySelector('#adultQrDialog').open, 'photo QR dialog auto close', 5000);
 
   // Completed HTML share must also use the prefixed public path.
