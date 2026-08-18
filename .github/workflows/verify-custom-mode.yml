@@ -36,3 +36,4 @@ jobs:
           git commit -m 'Record exhaustive custom mode verification'
           git push
           exit 0
+      # This file is intentionally temporary and is removed after PASS is confirmed.
