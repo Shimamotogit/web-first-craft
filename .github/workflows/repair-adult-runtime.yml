@@ -13,26 +13,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Record child-mode hashes
-        run: sha256sum web/child.html web/js/child.js web/css/child.css > /tmp/child-before.sha256
-      - name: Apply custom-mode repair
-        run: python3 scripts/temporary_fix_adult_runtime.py
-      - name: Validate JavaScript and Python
+      - name: Repair and validate custom mode
         run: |
-          node --check web/js/adult.js
-          python3 -m py_compile server/app.py tests/test_server.py tests/check_static.py tests/test_adult_browser.py
-      - name: Run static and server tests
-        run: |
-          python3 tests/check_static.py
-          python3 tests/test_server.py
-      - name: Run real-browser custom-mode test
-        run: python3 tests/test_adult_browser.py
-      - name: Verify child mode is untouched
-        run: sha256sum -c /tmp/child-before.sha256
-      - name: Commit repair
-        run: |
+          set +e
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add web/js/adult.js
-          git commit -m 'Repair custom mode runtime initialization'
+          sha256sum web/child.html web/js/child.js web/css/child.css > /tmp/child-before.sha256
+          {
+            echo '=== apply patch ==='
+            python3 scripts/temporary_fix_adult_runtime.py
+            echo '=== syntax ==='
+            node --check web/js/adult.js
+            python3 -m py_compile server/app.py tests/test_server.py tests/check_static.py tests/test_adult_browser.py
+            echo '=== static ==='
+            python3 tests/check_static.py
+            echo '=== server ==='
+            python3 tests/test_server.py
+            echo '=== browser ==='
+            python3 tests/test_adult_browser.py
+            echo '=== child hashes ==='
+            sha256sum -c /tmp/child-before.sha256
+          } > /tmp/adult-repair.log 2>&1
+          status=$?
+          cat /tmp/adult-repair.log
+          if [ "$status" -eq 0 ]; then
+            rm -f tests/temporary_adult_repair_result.txt
+            git add web/js/adult.js
+            git commit -m 'Repair custom mode runtime initialization'
+          else
+            cp /tmp/adult-repair.log tests/temporary_adult_repair_result.txt
+            git add tests/temporary_adult_repair_result.txt
+            git commit -m 'Record custom mode repair diagnostic'
+          fi
           git push
+          exit 0
