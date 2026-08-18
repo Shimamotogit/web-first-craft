@@ -73,6 +73,11 @@ def main() -> None:
         fail("index.html: root-absolute home link breaks GitHub Pages subpaths")
     if "このパソコンで動作中" in index_html:
         fail("index.html: LAN state must not be claimed before /api/config succeeds")
+    for marker in ("resetWorkshopData", "resetWorkshopStatus", "APP_STORAGE_PREFIX", "jibun-page-kobo-"):
+        if marker not in index_html:
+            fail(f"index.html: workshop reset is missing {marker}")
+    if "localStorage.clear(" in index_html or "sessionStorage.clear(" in index_html:
+        fail("index.html: reset must not clear unrelated storage on the shared zovira.jp origin")
     pages=(ROOT/".github/workflows/pages.yml").read_text(encoding="utf-8")
     if "\n  push:" in pages:
         fail("pages.yml: Pages deployment must be manual unless Pages is explicitly enabled")
