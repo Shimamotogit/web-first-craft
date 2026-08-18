@@ -1,0 +1,21 @@
+name: Diagnose adult browser
+
+on:
+  push:
+    paths:
+      - 'tests/temporary_adult_browser_smoke.py'
+      - '.github/workflows/diagnose-adult-browser.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check browser availability
+        run: |
+          which google-chrome || which google-chrome-stable || which chromium || which chromium-browser
+      - name: Run adult browser smoke
+        run: python3 tests/temporary_adult_browser_smoke.py
