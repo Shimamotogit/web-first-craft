@@ -63,6 +63,17 @@ async function waitFrameReady(frame,label,searchMarker=''){
   assert(d.querySelector('#scoreTips')?.children.length > 0, 'initial scoring did not render');
   assert(d.querySelector('#totalScore').textContent === '0', 'default state must score 0');
   assert([...d.querySelectorAll('#adultLayouts [data-layout]')].map(b=>b.textContent.trim()).join('/') === '左/中央/右寄せ', 'layout labels are not left/center/right');
+  assert(Number.parseInt(preview.style.width,10) === 1240, 'desktop preview must use a wide virtual viewport');
+
+  // Explicit no-photo choice is a valid completed HTML choice and removes the photo from output.
+  d.querySelector('#adultNoPhoto').click();
+  await waitFor(()=>d.querySelector('#adultPhotoStatus').textContent.includes('写真を載せない'), 'no-photo status');
+  assert(d.querySelector('#htmlScore').textContent === '5/35', 'no-photo choice must score the photo decision');
+  assert(d.querySelector('#jsScore').textContent === '6/20', 'no-photo choice must mark photo zoom as not applicable');
+  assert(d.querySelector('#jsPhotoZoom').disabled, 'photo zoom must be disabled without a photo');
+  assert(!preview.srcdoc.includes('id="profilePhoto"'), 'no-photo output must omit the profile photo');
+  d.querySelector('#removeAdultPhoto').click();
+  await waitFor(()=>d.querySelector('#totalScore').textContent === '0', 'reset photo choice');
 
   // Scoring help must actually open and close.
   d.querySelector('#adultHelp').click();
@@ -107,6 +118,10 @@ async function waitFrameReady(frame,label,searchMarker=''){
 
   // Change every CSS scoring target away from its default; CSS must reach 45/45.
   setInput(d.querySelector('#fontFamily'),'serif','change');
+  setInput(d.querySelector('#pageWidth'),'520');
+  await waitFor(()=>preview.srcdoc.includes('width:min(520px'), 'minimum page width in preview');
+  setInput(d.querySelector('#pageWidth'),'1180');
+  await waitFor(()=>preview.srcdoc.includes('width:min(1180px'), 'maximum page width in preview');
   setInput(d.querySelector('#pageWidth'),'900');
   setInput(d.querySelector('#bodySize'),'17');
   setInput(d.querySelector('#photoSize'),'260');
@@ -145,6 +160,16 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>preview.srcdoc.includes('id="revealButton"') && preview.srcdoc.includes('id="rouletteButton"') && preview.srcdoc.includes('id="photoZoom"'), 'JavaScript features in preview');
   await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'all defaults changed must score 100');
 
+  // The generated standalone HTML itself must keep working when opened in a normal browser.
+  const runner=document.createElement('iframe');runner.id='generatedRunner';runner.style.display='none';document.body.append(runner);runner.srcdoc=preview.srcdoc;
+  await waitFor(()=>runner.contentDocument?.querySelector('#rouletteButton'), 'standalone generated HTML');
+  const rd=runner.contentDocument,rouletteButton=rd.querySelector('#rouletteButton'),rouletteResult=rd.querySelector('#rouletteResult');
+  rouletteButton.click();await waitFor(()=>rouletteResult.textContent.includes('1回目'), 'roulette first click');const firstRoll=rouletteResult.textContent;
+  rouletteButton.click();await waitFor(()=>rouletteResult.textContent.includes('2回目'), 'roulette second click');
+  assert(rouletteResult.textContent !== firstRoll, 'roulette should visibly advance on every click');
+  const revealButton=rd.querySelector('#revealButton'),extraPanel=rd.querySelector('#extraPanel');revealButton.click();assert(!extraPanel.hidden,'standalone reveal must open');revealButton.click();assert(extraPanel.hidden,'standalone reveal must close');
+  runner.remove();
+
   // Remove the local photo, then exercise the full prefixed QR photo round trip.
   d.querySelector('.adult-steps [data-step="0"]').click();
   d.querySelector('#removeAdultPhoto').click();
@@ -165,6 +190,9 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>preview.srcdoc.includes('data:image/png;base64,'), 'QR photo in generated preview');
   await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'QR photo restore must return full score');
   await waitFor(()=>!d.querySelector('#adultQrDialog').open, 'photo QR dialog auto close', 5000);
+  d.querySelector('#adultNoPhoto').click();
+  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'explicit no-photo path must also allow full score');
+  assert(!preview.srcdoc.includes('id="profilePhoto"'), 'full-score no-photo output must omit photo');
 
   // Completed HTML share must also use the prefixed public path.
   d.querySelector('.adult-steps [data-step="2"]').click();

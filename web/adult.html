@@ -52,7 +52,7 @@
           <div class="field-grid"><label><span>見出し</span><input id="extraTitle" maxlength="32" placeholder="例：最近つくっているもの"></label><label><span>短い説明</span><input id="extraText" maxlength="100" placeholder="例：JavaScriptでミニゲームを作っています。"></label></div>
         </div>
 
-        <fieldset class="photo-field"><legend>プロフィール写真 <b>+5</b></legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>PHOTO</span></div><div><label class="file-button" for="adultPhotoInput">このPCから画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="removeAdultPhoto">画像を外す</button><p id="adultPhotoStatus" class="photo-status" role="status" aria-live="polite">プロフィール写真はまだ設定されていません。</p><p>公開URLまたはLANから、スマホの写真も送れます。</p></div></div></fieldset>
+        <fieldset class="photo-field"><legend>プロフィール写真 / 写真なし <b>+5</b></legend><div class="photo-area"><div class="photo-preview" id="adultPhotoPreview"><span>PHOTO</span></div><div><label class="file-button" for="adultPhotoInput">このPCから画像を選ぶ</label><input type="file" id="adultPhotoInput" accept="image/png,image/jpeg,image/webp" hidden><button type="button" id="adultPhonePhoto">QRでスマホから送る</button><button type="button" id="adultNoPhoto">写真を載せない</button><button type="button" id="removeAdultPhoto">未設定に戻す</button><p id="adultPhotoStatus" class="photo-status" role="status" aria-live="polite">写真を使うか「写真を載せない」を選んでください。</p><p>写真を載せる・載せないのどちらを選んでも、この項目は達成です。</p></div></div></fieldset>
         <div class="panel-nav"><span></span><button type="button" class="primary next" data-next="1">CSS LABへ →</button></div>
       </section>
 
@@ -93,21 +93,21 @@
         <div class="js-feature-list">
           <label class="js-feature"><input id="jsReveal" type="checkbox"><span class="feature-number">01</span><div><strong>もっと見る <b>最大 +7</b></strong><p>ボタンを押すと、HTMLで入力した追加プロフィールを開閉します。</p></div><code>classList.toggle()</code></label>
           <label class="js-feature"><input id="jsRoulette" type="checkbox"><span class="feature-number">02</span><div><strong>好きなものガチャ <b>最大 +7</b></strong><p>ボタンを押すたび「好きなもの」から1つをランダムに表示します。</p></div><code>Math.random()</code></label>
-          <label class="js-feature"><input id="jsPhotoZoom" type="checkbox"><span class="feature-number">03</span><div><strong>写真を拡大 <b>最大 +6</b></strong><p>プロフィール写真をクリックすると、大きく表示して閉じられます。</p></div><code>addEventListener()</code></label>
+          <label class="js-feature" id="jsPhotoZoomFeature"><input id="jsPhotoZoom" type="checkbox"><span class="feature-number">03</span><div><strong>写真を拡大 <b>最大 +6</b></strong><p id="jsPhotoZoomDescription">プロフィール写真をクリックすると、大きく表示して閉じられます。</p></div><code>addEventListener()</code></label>
         </div>
         <div class="js-note"><strong>右のプレビューで実際に押して確認できます。</strong><span>初期状態はOFF。機能をONにすると、その変更がそのまま得点になります。</span></div>
-        <div class="export-row"><button type="button" id="adultDownload">HTMLを保存</button><button type="button" id="adultShare">QRでスマホへ送る</button></div>
+        <div class="export-row"><button type="button" id="adultDownload">HTMLを保存</button><button type="button" id="adultOpenLive">ブラウザで動作確認</button><button type="button" id="adultShare">QRでスマホへ送る</button></div><p class="export-help">iPhone / iPadの「ファイル」はHTMLをプレビュー表示します。もっと見る・ガチャなどの動作確認は「ブラウザで動作確認」またはQRからSafariで開いてください。</p>
         <div class="panel-nav"><button type="button" class="secondary back" data-back="1">← CSS</button><span></span></div>
       </section>
     </section>
 
     <aside class="adult-preview-column">
       <div class="preview-heading"><div><p>LIVE PREVIEW</p><h2>完成イメージ</h2></div><div class="device-buttons"><button class="active" type="button" data-device="desktop">PC</button><button type="button" data-device="mobile">SP</button></div></div>
-      <div class="adult-browser desktop" id="adultBrowser"><div class="browser-bar"><span></span><span></span><span></span><b>my-profile.html</b></div><iframe id="adultPreview" title="制作中のサイト" sandbox="allow-scripts allow-modals"></iframe></div>
+      <div class="adult-browser desktop" id="adultBrowser"><div class="browser-bar"><span></span><span></span><span></span><b>my-profile.html</b></div><div class="adult-preview-viewport" id="adultPreviewViewport"><iframe id="adultPreview" title="制作中のサイト" sandbox="allow-scripts allow-modals"></iframe></div></div>
     </aside>
   </main>
 
-  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>デフォルトから変えた分だけ点が増える</h2><div class="rubric"><div><b>HTML / 35</b><p>空欄がデフォルト。名前・自己紹介・好きなもの・追加プロフィール・写真を入れると加点。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントがデフォルト値と違っていれば加点。元に戻すと点も戻ります。</p></div><div><b>JavaScript / 20</b><p>OFFがデフォルト。使いたい機能をONにすると加点。</p></div></div><p>対象項目を全部デフォルトから変えると100点です。見た目の良し悪しではなく「どれだけ試したか」を見る学習用スコアです。</p></div></dialog>
+  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>デフォルトから変えた分だけ点が増える</h2><div class="rubric"><div><b>HTML / 35</b><p>空欄がデフォルト。名前・自己紹介・好きなもの・追加プロフィールを入れ、写真は「使う / 載せない」を決めると加点。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントがデフォルト値と違っていれば加点。元に戻すと点も戻ります。</p></div><div><b>JavaScript / 20</b><p>OFFがデフォルト。使いたい機能をONにすると加点。写真なしを選んだ場合、写真拡大の6点は対象外として達成扱いです。</p></div></div><p>対象項目を全部デフォルトから変えると100点です。見た目の良し悪しではなく「どれだけ試したか」を見る学習用スコアです。</p></div></dialog>
   <dialog id="adultQrDialog"><div class="dialog-paper qr-dialog"><button type="button" class="dialog-close" data-close="adultQrDialog">×</button><p class="dialog-kicker">SAME WI-FI</p><h2 id="adultQrTitle">スマホとつなぐ</h2><div id="adultQrBox" class="adult-qr-box">QRを準備しています…</div><p id="adultQrStatus"></p><a id="adultQrLink" href="#" target="_blank" rel="noopener" hidden>リンクを開く</a></div></dialog>
   <div id="adultToast" class="adult-toast" role="status" aria-live="polite"></div>
 </body>
