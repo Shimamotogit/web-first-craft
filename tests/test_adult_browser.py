@@ -45,9 +45,10 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>{
     try{
       const url=new URL(frame.contentWindow.location.href);
-      return url.pathname.endsWith('/adult.html') && (!searchMarker || url.search.includes(searchMarker)) && frame.contentDocument?.readyState==='complete';
+      const preview=frame.contentDocument?.querySelector('#adultPreview');
+      return url.pathname.endsWith('/adult.html') && (!searchMarker || url.search.includes(searchMarker)) && Boolean(preview?.srcdoc);
     }catch(_){return false;}
-  }, label + ' navigation', 10000);
+  }, label + ' ready', 12000);
 }
 (async () => {
   const frame = document.getElementById('frame');
