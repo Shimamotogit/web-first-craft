@@ -18,7 +18,7 @@ jobs:
           set +e
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          python3 scripts/temporary_fix_adult_browser_test.py
+          python3 scripts/temporary_fix_adult_browser_test2.py
           {
             echo '=== JavaScript syntax ==='
             node --check web/js/adult.js
@@ -36,6 +36,6 @@ jobs:
           printf 'status=%s\n' "$status" > tests/temporary_custom_verification.txt
           cat /tmp/custom-verification.log >> tests/temporary_custom_verification.txt
           git add tests/test_adult_browser.py tests/temporary_custom_verification.txt
-          git commit -m 'Fix and verify exhaustive custom mode browser test'
+          git commit -m 'Finalize exhaustive custom mode browser verification'
           git push
           exit 0
