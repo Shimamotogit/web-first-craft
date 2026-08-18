@@ -10,7 +10,12 @@
   <style>
     .hero h1{font-size:clamp(2.4rem,4.6vw,5.5rem)}
     .hero-title-line{display:block;white-space:nowrap}
+    .workshop-reset{display:flex;align-items:center;gap:14px;max-width:690px;margin-top:24px;padding:14px 15px;background:#fff8e7;border:2px solid #8d7b5a;border-radius:9px 13px 8px 11px}
+    .workshop-reset-copy{min-width:0;flex:1}.workshop-reset-copy strong,.workshop-reset-copy span{display:block}.workshop-reset-copy strong{font-size:.8rem}.workshop-reset-copy span{margin-top:3px;color:#5f574b;font-size:.72rem}
+    .workshop-reset button{flex:0 0 auto;padding:9px 12px;color:#fff;background:#8f3f32;border:2px solid #292722;border-radius:7px;font-weight:900;cursor:pointer}.workshop-reset button:hover,.workshop-reset button:focus-visible{background:#713127;outline:3px solid rgba(245,196,81,.55);outline-offset:2px}
+    #resetWorkshopStatus{min-height:1.4em;margin:7px 0 0;font-size:.72rem;font-weight:900;color:#25633d}
     @media(max-width:850px){.hero h1{font-size:clamp(2rem,9vw,5.2rem)}}
+    @media(max-width:560px){.workshop-reset{display:block}.workshop-reset button{width:100%;margin-top:11px}}
   </style>
 </head>
 <body>
@@ -32,6 +37,14 @@
           <div><b>1</b><span><strong>HTML</strong><small>なかみをつくる</small></span></div>
           <div><b>2</b><span><strong>CSS</strong><small>みためをつくる</small></span></div>
           <div><b>3</b><span><strong>JavaScript</strong><small>きのうをつくる</small></span></div>
+        </div>
+        <div class="workshop-reset">
+          <div class="workshop-reset-copy">
+            <strong>次の人がこのPCを使うとき</strong>
+            <span>こども・カスタム両モードの入力、写真、設定をこのブラウザから消します。</span>
+            <p id="resetWorkshopStatus" role="status" aria-live="polite"></p>
+          </div>
+          <button id="resetWorkshopData" type="button">すべての入力をリセット</button>
         </div>
       </div>
       <div class="hero-visual" aria-hidden="true">
@@ -91,6 +104,31 @@
   </footer>
 
   <script>
+    const APP_STORAGE_PREFIX='jibun-page-kobo-';
+    const resetButton=document.getElementById('resetWorkshopData');
+    const resetStatus=document.getElementById('resetWorkshopStatus');
+
+    function removeWorkshopStorage(storage){
+      const keys=[];
+      for(let i=0;i<storage.length;i+=1){
+        const key=storage.key(i);
+        if(key&&key.startsWith(APP_STORAGE_PREFIX))keys.push(key);
+      }
+      keys.forEach(key=>storage.removeItem(key));
+      return keys.length;
+    }
+
+    resetButton.addEventListener('click',()=>{
+      const confirmed=window.confirm('こどもモード・カスタムモードの入力、写真、設定をこのPCから消します。元に戻せません。リセットしますか？');
+      if(!confirmed)return;
+      let removed=0;
+      try{removed+=removeWorkshopStorage(window.localStorage);}catch(_error){}
+      try{removed+=removeWorkshopStorage(window.sessionStorage);}catch(_error){}
+      resetStatus.textContent=removed>0?'リセットしました。次の人が最初から使えます。':'保存されている入力はありません。次の人がそのまま使えます。';
+      resetButton.textContent='リセット済み ✓';
+      setTimeout(()=>{resetButton.textContent='すべての入力をリセット';},2200);
+    });
+
     fetch(new URL('api/config',window.location.href)).then(r=>r.ok?r.json():Promise.reject()).then(data=>{
       const chip=document.getElementById('lanChip');
       if(data.enabled){chip.classList.add('ready');chip.innerHTML=data.mode==='public'?'<span></span> 公開モード：QR機能が使えます':'<span></span> QRサーバー接続済み：QR機能が使えます';}
