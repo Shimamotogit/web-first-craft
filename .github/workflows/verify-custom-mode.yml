@@ -18,9 +18,12 @@ jobs:
           set +e
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python3 scripts/temporary_fix_adult_browser_test.py
           {
             echo '=== JavaScript syntax ==='
             node --check web/js/adult.js
+            echo '=== test Python syntax ==='
+            python3 -m py_compile tests/test_adult_browser.py
             echo '=== static checks ==='
             python3 tests/check_static.py
             echo '=== server integration ==='
@@ -32,8 +35,7 @@ jobs:
           cat /tmp/custom-verification.log
           printf 'status=%s\n' "$status" > tests/temporary_custom_verification.txt
           cat /tmp/custom-verification.log >> tests/temporary_custom_verification.txt
-          git add tests/temporary_custom_verification.txt
-          git commit -m 'Record exhaustive custom mode verification'
+          git add tests/test_adult_browser.py tests/temporary_custom_verification.txt
+          git commit -m 'Fix and verify exhaustive custom mode browser test'
           git push
           exit 0
-      # This file is intentionally temporary and is removed after PASS is confirmed.
