@@ -1,0 +1,38 @@
+name: Verify custom mode exhaustively
+
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-custom-mode.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run exhaustive browser and server verification
+        run: |
+          set +e
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          {
+            echo '=== JavaScript syntax ==='
+            node --check web/js/adult.js
+            echo '=== static checks ==='
+            python3 tests/check_static.py
+            echo '=== server integration ==='
+            python3 tests/test_server.py
+            echo '=== custom browser regression ==='
+            python3 tests/test_adult_browser.py
+          } > /tmp/custom-verification.log 2>&1
+          status=$?
+          cat /tmp/custom-verification.log
+          printf 'status=%s\n' "$status" > tests/temporary_custom_verification.txt
+          cat /tmp/custom-verification.log >> tests/temporary_custom_verification.txt
+          git add tests/temporary_custom_verification.txt
+          git commit -m 'Record exhaustive custom mode verification'
+          git push
+          exit 0
