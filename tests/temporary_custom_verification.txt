@@ -1,0 +1,241 @@
+status=1
+=== JavaScript syntax ===
+=== static checks ===
+OK: 3 pages, 111 unique ids, child kana/PC input + static card, adult px/RGB lab + scoring present
+=== server integration ===
+[18/Aug/2026 16:52:38] "GET /api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /healthz HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "GET /my-site/api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /my-site/api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "GET /my-site/phone/photo/0jKRe9fofiEgcABzpM9xpWKJ HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /my-site/api/photo-sessions/0jKRe9fofiEgcABzpM9xpWKJ/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /my-site/api/photo-sessions/0jKRe9fofiEgcABzpM9xpWKJ HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /my-site/ HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET / HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /child.html HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /adult.html HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /css/main.css HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /css/child.css HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /js/child.js HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/qr?text=http%3A//127.0.0.1%3A43769/card/example HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "GET /phone/photo/2yhfhc3r1nfumEdtuDO8epJU HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions/2yhfhc3r1nfumEdtuDO8epJU/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/photo-sessions/2yhfhc3r1nfumEdtuDO8epJU HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions/n1eb0mHg3jlKw2lvKg2oNZ7U/photo HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/photo-sessions/KMXjtyoopqnx10I6teskIleu HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/photo-sessions/n1eb0mHg3jlKw2lvKg2oNZ7U HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/shares HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "GET /api/shares/7KtkvjGyQWxEVqHVJpIi7vOi/view HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/shares/7KtkvjGyQWxEVqHVJpIi7vOi/download HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/cards HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "GET /card/kbbOenbL5LTMCgO7kBIxuzIX HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/cards/kbbOenbL5LTMCgO7kBIxuzIX/view HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "GET /api/cards/kbbOenbL5LTMCgO7kBIxuzIX/download HTTP/1.1" 200 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 503 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 201 -
+[18/Aug/2026 16:52:38] "POST /api/photo-sessions HTTP/1.1" 429 -
+OK: local/public URL generation, static pages, QR, gallery/camera photo, concurrent isolated sessions, sandboxed HTML share, bounded/rate-limited sessions, PNG card share
+=== custom browser regression ===
+[18/Aug/2026 16:52:39] "GET /web-first-craft/__adult_browser_smoke.html HTTP/1.1" 200 -
+[18/Aug/2026 16:52:40] "GET /web-first-craft/adult.html HTTP/1.1" 200 -
+[18/Aug/2026 16:52:40] "GET /web-first-craft/css/adult.css HTTP/1.1" 200 -
+[18/Aug/2026 16:52:40] "GET /web-first-craft/js/adult.js HTTP/1.1" 200 -
+[18/Aug/2026 16:52:40] "GET /web-first-craft/api/config HTTP/1.1" 200 -
+[18/Aug/2026 16:52:40] "GET /favicon.ico HTTP/1.1" 404 -
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>custom mode browser regression</title>
+</head><body data-result="FAIL"><pre id="result">FAIL: Error: timeout: initial preview
+    at waitFor (http://127.0.0.1:44571/web-first-craft/__adult_browser_smoke.html:16:9)
+    at async http://127.0.0.1:44571/web-first-craft/__adult_browser_smoke.html:35:3</pre>
+<iframe id="frame" src="adult.html" style="width:1200px;height:900px"></iframe>
+<script>
+const out = document.getElementById('result');
+const STORAGE_KEY = 'jibun-page-kobo-adult-v3';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function waitFor(fn, label, timeout=9000) {
+  const start = performance.now();
+  while (performance.now() - start < timeout) {
+    try { if (fn()) return; } catch (_) {}
+    await sleep(80);
+  }
+  throw new Error('timeout: ' + label);
+}
+function assert(cond, message) { if (!cond) throw new Error(message); }
+function event(type){ return new Event(type,{bubbles:true}); }
+function setInput(el,value,type='input'){ el.value=value; el.dispatchEvent(event(type)); }
+async function waitFrame(frame,label){
+  if(frame.contentDocument && frame.contentDocument.readyState === 'complete') return;
+  await new Promise((resolve,reject)=>{
+    frame.addEventListener('load',resolve,{once:true});
+    setTimeout(()=>reject(new Error(label + ' load timeout')),9000);
+  });
+}
+(async () => {
+  const frame = document.getElementById('frame');
+  await waitFrame(frame,'adult.html');
+  let d = frame.contentDocument;
+  assert(d, 'adult document unavailable');
+
+  // Runtime initialization: preview and score must be populated on first load.
+  await waitFor(()=>d.querySelector('#adultPreview')?.srcdoc, 'initial preview');
+  let preview = d.querySelector('#adultPreview');
+  assert(preview.srcdoc.includes('MY PROFILE'), 'initial preview HTML missing');
+  assert(d.querySelector('#scoreTips')?.children.length > 0, 'initial scoring did not render');
+
+  // Scoring help must actually open and close.
+  d.querySelector('#adultHelp').click();
+  await waitFor(()=>d.querySelector('#adultHelpDialog').open || d.querySelector('#adultHelpDialog').hasAttribute('open'), 'scoring dialog open');
+  assert(d.querySelector('#adultHelp').getAttribute('aria-expanded') === 'true', 'help button state did not update');
+  d.querySelector('#adultHelpDialog [data-close]').click();
+  await waitFor(()=>!d.querySelector('#adultHelpDialog').open && !d.querySelector('#adultHelpDialog').hasAttribute('open'), 'scoring dialog close');
+
+  // HTML input must update both score and generated preview.
+  setInput(d.querySelector('#profileName'),'BROWSER TEST');
+  setInput(d.querySelector('#profileTagline'),'CUSTOM MODE TEST');
+  setInput(d.querySelector('#profileIntro'),'ブラウザで初期化とプレビュー更新を確認するテストです。');
+  setInput(d.querySelector('#favorite1'),'HTML');
+  setInput(d.querySelector('#favorite2'),'CSS');
+  setInput(d.querySelector('#favorite3'),'JavaScript');
+  setInput(d.querySelector('#extraTitle'),'MORE TEST');
+  setInput(d.querySelector('#extraText'),'もっと見る機能のテスト本文です。');
+  await waitFor(()=>Number(d.querySelector('#htmlScore').textContent.split('/')[0]) >= 30, 'HTML score update');
+  await waitFor(()=>preview.srcdoc.includes('BROWSER TEST'), 'text in generated preview');
+
+  // CSS controls must change live preview and score.
+  d.querySelector('.adult-steps [data-step="1"]').click();
+  await waitFor(()=>!d.querySelector('.adult-panel[data-panel="1"]').hidden, 'CSS panel');
+  setInput(d.querySelector('#headingSize'),'72');
+  setInput(d.querySelector('#backgroundR'),'210');
+  d.querySelector('#adultLayouts [data-layout="center"]').click();
+  await waitFor(()=>preview.srcdoc.includes('font-size:72px'), 'heading size in preview');
+  await waitFor(()=>preview.srcdoc.includes('rgb(210, 241, 234)'), 'RGB in preview');
+  assert(Number(d.querySelector('#cssScore').textContent.split('/')[0]) > 0, 'CSS score did not increase');
+
+  // PC file selection must be converted and applied to both previews.
+  d.querySelector('.adult-steps [data-step="0"]').click();
+  const png64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2mGQAAAAASUVORK5CYII=';
+  const bytes = Uint8Array.from(atob(png64), c => c.charCodeAt(0));
+  const file = new File([bytes], 'profile.png', {type:'image/png'});
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  const input = d.querySelector('#adultPhotoInput');
+  input.files = transfer.files;
+  input.dispatchEvent(event('change'));
+  await waitFor(()=>d.querySelector('#adultPhotoPreview img'), 'PC photo preview');
+  assert(d.querySelector('#adultPhotoStatus').textContent.includes('反映'), 'PC photo status missing');
+  await waitFor(()=>preview.srcdoc.includes('data:image/jpeg;base64,'), 'PC photo in generated preview');
+
+  // JS feature selection must affect generated output and reach full JS score when prerequisites exist.
+  d.querySelector('.adult-steps [data-step="2"]').click();
+  for(const id of ['jsReveal','jsRoulette','jsPhotoZoom']){
+    const checkbox=d.querySelector('#'+id); checkbox.checked=true; checkbox.dispatchEvent(event('change'));
+  }
+  await waitFor(()=>d.querySelector('#jsScore').textContent === '20/20', 'JavaScript score');
+  await waitFor(()=>preview.srcdoc.includes('id="revealButton"') && preview.srcdoc.includes('id="rouletteButton"') && preview.srcdoc.includes('id="photoZoom"'), 'JavaScript features in preview');
+
+  // Remove the local photo, then exercise the full prefixed QR photo round trip.
+  d.querySelector('.adult-steps [data-step="0"]').click();
+  d.querySelector('#removeAdultPhoto').click();
+  await waitFor(()=>!d.querySelector('#adultPhotoPreview img'), 'photo removal');
+  d.querySelector('#adultPhonePhoto').click();
+  await waitFor(()=>d.querySelector('#adultQrDialog').open, 'QR dialog open');
+  let link = d.querySelector('#adultQrLink');
+  await waitFor(()=>!link.hidden && /\/web-first-craft\/phone\/photo\//.test(link.href), 'prefixed QR upload URL');
+  const token = link.href.split('/phone/photo/')[1].split(/[?#]/)[0];
+  const photo = 'data:image/png;base64,' + png64;
+  const appBase = new URL('.', location.href);
+  let response = await fetch(new URL('api/photo-sessions/' + encodeURIComponent(token) + '/photo', appBase), {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({photo})
+  });
+  assert(response.ok, 'QR photo POST failed: ' + response.status);
+  await waitFor(()=>d.querySelector('#adultPhotoPreview img'), 'QR photo applied', 11000);
+  assert(d.querySelector('#adultPhotoStatus').textContent.includes('反映'), 'QR photo status missing');
+  await waitFor(()=>preview.srcdoc.includes('data:image/png;base64,'), 'QR photo in generated preview');
+  await waitFor(()=>!d.querySelector('#adultQrDialog').open, 'photo QR dialog auto close', 5000);
+
+  // Completed HTML share must also use the prefixed public path.
+  d.querySelector('.adult-steps [data-step="2"]').click();
+  d.querySelector('#adultShare').click();
+  await waitFor(()=>d.querySelector('#adultQrDialog').open, 'share QR dialog open');
+  link = d.querySelector('#adultQrLink');
+  await waitFor(()=>!link.hidden && /\/web-first-craft\/share\//.test(link.href), 'prefixed share URL');
+  d.querySelector('#adultQrDialog [data-close]').click();
+  await waitFor(()=>!d.querySelector('#adultQrDialog').open, 'share QR dialog close');
+
+  // Old/corrupt localStorage must never prevent startup. Reload with deliberately bad types/ranges.
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    name:123, tagline:null, intro:{bad:true}, favorites:[1,null,{}], extraTitle:[], extraText:false,
+    layout:'broken', fontFamily:'broken', pageWidth:'not-a-number', headingSize:9999, bodySize:-50,
+    background:null, accent:{r:'bad',g:999,b:-20}, text:'bad',
+    jsReveal:'true', jsRoulette:1, jsPhotoZoom:null, touched:[null,'pageWidth','unknown'], photo:'not-an-image'
+  }));
+  const reload = new Promise((resolve,reject)=>{
+    frame.addEventListener('load',resolve,{once:true});
+    setTimeout(()=>reject(new Error('stale-state reload timeout')),9000);
+  });
+  frame.src='adult.html?stale-state=1';
+  await reload;
+  d=frame.contentDocument;
+  await waitFor(()=>d.querySelector('#adultPreview')?.srcdoc, 'preview after stale state');
+  preview=d.querySelector('#adultPreview');
+  assert(preview.srcdoc.includes('MY PROFILE'), 'stale state broke preview');
+  assert(d.querySelector('#profileName').value === '', 'invalid saved name was not normalized');
+  assert(Number(d.querySelector('#headingSize').value) === 96, 'numeric maximum was not clamped');
+  assert(Number(d.querySelector('#bodySize').value) === 12, 'numeric minimum was not clamped');
+  assert(!d.querySelector('#adultPhotoPreview img'), 'invalid saved photo was not discarded');
+  assert(d.querySelector('#scoreTips').children.length > 0, 'scoring failed after stale state');
+
+  out.textContent = 'PASS';
+  document.body.dataset.result = 'PASS';
+})().catch(err => {
+  out.textContent = 'FAIL: ' + (err && err.stack ? err.stack : err);
+  document.body.dataset.result = 'FAIL';
+});
+</script>
+</body></html>
+[2384:2407:0818/165239.092512:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2407:0818/165239.094105:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2407:0818/165239.299550:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2407:0818/165239.353352:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2384:0818/165239.553155:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2384:0818/165239.553220:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2407:0818/165239.553287:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2407:0818/165239.553298:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2384:0818/165239.556057:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2384:0818/165239.560664:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2384:0818/165239.611439:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2384:0818/165239.615034:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2407:0818/165239.615081:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2384:0818/165239.664772:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+[2384:2384:0818/165239.665919:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2407:0818/165239.665977:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2384:0818/165239.688655:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[2384:2407:0818/165239.688731:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[2384:2384:0818/165239.702392:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+
+
+Traceback (most recent call last):
+  File "/home/runner/work/web-first-craft/web-first-craft/tests/test_adult_browser.py", line 229, in <module>
+    main()
+  File "/home/runner/work/web-first-craft/web-first-craft/tests/test_adult_browser.py", line 218, in main
+    raise RuntimeError("custom mode browser regression failed")
+RuntimeError: custom mode browser regression failed
