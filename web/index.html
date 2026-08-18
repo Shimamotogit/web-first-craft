@@ -4,9 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5c451">
-  <meta name="description" content="HTML・CSS・JavaScriptの3ステップで、Webサイトを形にする仕事を体験するWeb工作室。">
+  <meta name="description" content="HTML・CSS・JavaScriptを使いながら、自分だけのWebページを作ってみるWeb工作室。">
   <title>じぶんページ工房｜Webサイトをつくる体験</title>
   <link rel="stylesheet" href="css/main.css">
+  <style>
+    .hero h1{font-size:clamp(2.4rem,4.6vw,5.5rem)}
+    .hero-title-line{display:block;white-space:nowrap}
+    @media(max-width:850px){.hero h1{font-size:clamp(2rem,9vw,5.2rem)}}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -21,8 +26,8 @@
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">WEB WORKSHOP</p>
-        <h1>技術で、<br><em>「自分のページ」</em>を作る。</h1>
-        <p class="lead">中身を組み立てて、見た目を変えて、できることを増やす。<br>Webサイトを「形にする仕事」を3ステップで体験します。</p>
+        <h1><span class="hero-title-line">自分のページを、</span><em class="hero-title-line">つくってみよう。</em></h1>
+        <p class="lead">中身を組み立てて、見た目を変えて、できることを増やす。<br>HTML・CSS・JavaScriptを使いながら、自分だけのページを少しずつ作ってみよう。</p>
         <div class="three-steps" aria-label="3つの学習ステップ">
           <div><b>1</b><span><strong>HTML</strong><small>なかみをつくる</small></span></div>
           <div><b>2</b><span><strong>CSS</strong><small>みためをつくる</small></span></div>
