@@ -93,12 +93,13 @@ def main() -> None:
         fail("child mode must support both kana-pad and PC keyboard input")
     if child.count("buildKidSvg()") < 4:
         fail("child preview/export paths must share buildKidSvg()")
-    for marker in ("decorSafeZone", 'data-decor-zone="edge"', 'clip-path="url(#decorSafeZone)"'):
-        if marker not in child:
-            fail(f"child decoration safe-edge behavior is missing {marker}")
+    if "decorSafeZone" in child or 'clip-path="url(#decorSafeZone)"' in child:
+        fail("child decoration must not reserve a dedicated safe-edge margin")
+    if 'data-decor-zone="border"' not in child:
+        fail("child decoration must sit directly on the existing card border")
     expected_layer_order='${patternSvg(state.pattern,p)}${content}${decorSvg(state.decor,p)}'
     if expected_layer_order not in child:
-        fail("child decoration must render after content so it is visible, while the safe-edge clip prevents overlap")
+        fail("child decoration must render after content so it is visible, without reserving a decoration-only margin")
     if "data-motion=" in child_html or "data-magic=" in child_html:
         fail("child final-card workflow must not expose animation choices")
     if "buildHtml" not in adult or "function score" not in adult or "api/shares" not in adult:
@@ -120,6 +121,6 @@ def main() -> None:
     for legacy in ("静かな時間", "順番に表示", "STAGGER", "お題", "難易度"):
         if legacy in adult_html:
             fail(f"adult mode still contains legacy challenge UI: {legacy}")
-    print(f"OK: 3 pages, {total_ids} unique ids, child safe-edge decorations, adult persistent scoring + px/RGB lab present")
+    print(f"OK: 3 pages, {total_ids} unique ids, child border decorations without reserved margin, adult persistent scoring + px/RGB lab present")
 
 if __name__ == "__main__": main()
