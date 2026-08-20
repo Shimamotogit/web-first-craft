@@ -256,7 +256,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   assert(Number(d.querySelector('#headingSize').value) === 96, 'numeric maximum was not clamped');
   assert(Number(d.querySelector('#bodySize').value) === 12, 'numeric minimum was not clamped');
   assert(!d.querySelector('#adultPhotoPreview img'), 'invalid saved photo was not discarded');
-  assert(d.querySelector('#cssScore').textContent.startsWith('8/'), 'valid saved and migrated CSS achievements were not preserved');
+  assert(d.querySelector('#cssScore').textContent === '13/45', 'valid saved and migrated CSS achievements were not preserved');
   assert(d.querySelector('#scoreTips').children.length > 0, 'scoring failed after stale state');
 
   out.textContent = 'PASS';
