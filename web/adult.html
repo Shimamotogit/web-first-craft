@@ -78,7 +78,7 @@
           </section>
         </div>
 
-        <div class="rgb-section"><div class="rgb-heading"><div><p>RGB COLOR MIXER</p><h3>0〜255を入れて色を作る</h3></div><span>R = Red / G = Green / B = Blue</span></div><div class="rgb-grid">
+        <div class="rgb-section"><div class="rgb-heading"><div><p>RGB COLOR MIXER</p><h3>数字でも、マウスでも色を作る</h3></div><span>R = Red / G = Green / B = Blue</span></div><div class="rgb-grid">
           <div class="rgb-card" data-rgb-group="background"><div class="rgb-card-head"><strong>背景</strong><i id="backgroundSwatch"></i></div><div class="rgb-inputs"><label>R<input id="backgroundR" type="number" min="0" max="255"></label><label>G<input id="backgroundG" type="number" min="0" max="255"></label><label>B<input id="backgroundB" type="number" min="0" max="255"></label></div><code id="backgroundCode"></code></div>
           <div class="rgb-card" data-rgb-group="accent"><div class="rgb-card-head"><strong>アクセント</strong><i id="accentSwatch"></i></div><div class="rgb-inputs"><label>R<input id="accentR" type="number" min="0" max="255"></label><label>G<input id="accentG" type="number" min="0" max="255"></label><label>B<input id="accentB" type="number" min="0" max="255"></label></div><code id="accentCode"></code></div>
           <div class="rgb-card" data-rgb-group="text"><div class="rgb-card-head"><strong>文字</strong><i id="textSwatch"></i></div><div class="rgb-inputs"><label>R<input id="textR" type="number" min="0" max="255"></label><label>G<input id="textG" type="number" min="0" max="255"></label><label>B<input id="textB" type="number" min="0" max="255"></label></div><code id="textCode"></code></div>
@@ -95,7 +95,7 @@
           <label class="js-feature"><input id="jsRoulette" type="checkbox"><span class="feature-number">02</span><div><strong>好きなものガチャ <b>最大 +7</b></strong><p>ボタンを押すたび「好きなもの」から1つをランダムに表示します。</p></div><code>Math.random()</code></label>
           <label class="js-feature" id="jsPhotoZoomFeature"><input id="jsPhotoZoom" type="checkbox"><span class="feature-number">03</span><div><strong>写真を拡大 <b>最大 +6</b></strong><p id="jsPhotoZoomDescription">プロフィール写真をクリックすると、大きく表示して閉じられます。</p></div><code>addEventListener()</code></label>
         </div>
-        <div class="js-note"><strong>右のプレビューで実際に押して確認できます。</strong><span>初期状態はOFF。機能をONにすると、その変更がそのまま得点になります。</span></div>
+        <div class="js-note"><strong>右のプレビューで実際に押して確認できます。</strong><span>一度ONにして試した機能の得点は、あとでOFFに戻しても残ります。</span></div>
         <div class="export-row"><button type="button" id="adultDownload">HTMLを保存</button><button type="button" id="adultOpenLive">ブラウザで動作確認</button><button type="button" id="adultShare">QRでスマホへ送る</button></div><p class="export-help">iPhone / iPadの「ファイル」はHTMLをプレビュー表示します。もっと見る・ガチャなどの動作確認は「ブラウザで動作確認」またはQRからSafariで開いてください。</p>
         <div class="panel-nav"><button type="button" class="secondary back" data-back="1">← CSS</button><span></span></div>
       </section>
@@ -107,7 +107,7 @@
     </aside>
   </main>
 
-  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>デフォルトから変えた分だけ点が増える</h2><div class="rubric"><div><b>HTML / 35</b><p>空欄がデフォルト。名前・自己紹介・好きなもの・追加プロフィールを入れ、写真は「使う / 載せない」を決めると加点。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントがデフォルト値と違っていれば加点。元に戻すと点も戻ります。</p></div><div><b>JavaScript / 20</b><p>OFFがデフォルト。使いたい機能をONにすると加点。写真なしを選んだ場合、写真拡大の6点は対象外として達成扱いです。</p></div></div><p>対象項目を全部デフォルトから変えると100点です。見た目の良し悪しではなく「どれだけ試したか」を見る学習用スコアです。</p></div></dialog>
+  <dialog id="adultHelpDialog"><div class="dialog-paper"><button type="button" class="dialog-close" data-close="adultHelpDialog">×</button><p class="dialog-kicker">SCORING / 100</p><h2>一度試した項目の点数は、そのまま残る</h2><div class="rubric"><div><b>HTML / 35</b><p>名前・自己紹介・好きなもの・追加プロフィールを一度入力し、写真は「使う / 載せない」を一度決めると加点。あとで空欄へ戻しても獲得済みです。</p></div><div><b>CSS / 45</b><p>px・RGB・レイアウト・フォントをデフォルトから一度変更すると加点。元の値へ戻しても点数は残ります。</p></div><div><b>JavaScript / 20</b><p>機能を一度ONにすると加点。あとでOFFに戻しても獲得済みです。写真なしを選んだ場合、写真拡大の6点は達成扱いです。</p></div></div><p>全部の対象項目を一度以上試すと100点です。見た目の良し悪しではなく「どれだけ操作して試したか」を見る学習用スコアです。</p></div></dialog>
   <dialog id="adultQrDialog"><div class="dialog-paper qr-dialog"><button type="button" class="dialog-close" data-close="adultQrDialog">×</button><p class="dialog-kicker">SAME WI-FI</p><h2 id="adultQrTitle">スマホとつなぐ</h2><div id="adultQrBox" class="adult-qr-box">QRを準備しています…</div><p id="adultQrStatus"></p><a id="adultQrLink" href="#" target="_blank" rel="noopener" hidden>リンクを開く</a></div></dialog>
   <div id="adultToast" class="adult-toast" role="status" aria-live="polite"></div>
 </body>
