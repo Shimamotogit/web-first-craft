@@ -93,6 +93,12 @@ def main() -> None:
         fail("child mode must support both kana-pad and PC keyboard input")
     if child.count("buildKidSvg()") < 4:
         fail("child preview/export paths must share buildKidSvg()")
+    for marker in ("decorSafeZone", 'data-decor-zone="edge"', 'clip-path="url(#decorSafeZone)"'):
+        if marker not in child:
+            fail(f"child decoration safe-edge behavior is missing {marker}")
+    expected_layer_order='${patternSvg(state.pattern,p)}${content}${decorSvg(state.decor,p)}'
+    if expected_layer_order not in child:
+        fail("child decoration must render after content so it is visible, while the safe-edge clip prevents overlap")
     if "data-motion=" in child_html or "data-magic=" in child_html:
         fail("child final-card workflow must not expose animation choices")
     if "buildHtml" not in adult or "function score" not in adult or "api/shares" not in adult:
@@ -104,12 +110,16 @@ def main() -> None:
     for marker in ("adultPhotoStatus", "adultHelpDialog"):
         if f'id="{marker}"' not in adult_html:
             fail(f"adult mode feedback UI is missing {marker}")
-    for marker in ("applyProfilePhoto", "MAX_PROFILE_DATA_URL", "openScoreHelp", "setHelpOpenState"):
+    for marker in ("applyProfilePhoto", "MAX_PROFILE_DATA_URL", "openScoreHelp", "setHelpOpenState", "htmlPoints", "jsPoints", "scoringKeys", "markTouched"):
         if marker not in adult:
-            fail(f"adult mode feedback behavior is missing {marker}")
+            fail(f"adult mode feedback/scoring behavior is missing {marker}")
+    if '<p class="section-label">MORE</p>' in adult:
+        fail("adult generated page must not display the MORE label")
+    if "元の値へ戻しても点数は残ります" not in adult_html:
+        fail("adult scoring help must explain persistent earned points")
     for legacy in ("静かな時間", "順番に表示", "STAGGER", "お題", "難易度"):
         if legacy in adult_html:
             fail(f"adult mode still contains legacy challenge UI: {legacy}")
-    print(f"OK: 3 pages, {total_ids} unique ids, child kana/PC input + static card, adult px/RGB lab + scoring present")
+    print(f"OK: 3 pages, {total_ids} unique ids, child safe-edge decorations, adult persistent scoring + px/RGB lab present")
 
 if __name__ == "__main__": main()
