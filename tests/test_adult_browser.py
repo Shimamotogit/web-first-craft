@@ -3,7 +3,8 @@
 
 This catches runtime initialization errors that syntax checks cannot detect. It runs
 through the same prefixed deployment shape used by /web-first-craft/ and exercises
-preview, score/help, CSS/JS changes, local/QR photos, share QR, and stale storage.
+preview, persistent scoring/help, CSS/JS changes, color pickers, local/QR photos,
+share QR, and stale storage.
 """
 from __future__ import annotations
 
@@ -64,8 +65,10 @@ async function waitFrameReady(frame,label,searchMarker=''){
   assert(d.querySelector('#totalScore').textContent === '0', 'default state must score 0');
   assert([...d.querySelectorAll('#adultLayouts [data-layout]')].map(b=>b.textContent.trim()).join('/') === '左/中央/右寄せ', 'layout labels are not left/center/right');
   assert(Number.parseInt(preview.style.width,10) === 1240, 'desktop preview must use a wide virtual viewport');
+  assert(!preview.srcdoc.includes('<section class="favorites">'), 'empty favorites must not render a preview section');
+  assert(!preview.srcdoc.includes('<span>ゲーム</span>') && !preview.srcdoc.includes('<span>音楽</span>') && !preview.srcdoc.includes('<span>つくること</span>'), 'favorite examples must never become preview defaults');
 
-  // Explicit no-photo choice is a valid completed HTML choice and removes the photo from output.
+  // Explicit no-photo choice earns its points permanently, even if the UI is reset later.
   d.querySelector('#adultNoPhoto').click();
   await waitFor(()=>d.querySelector('#adultPhotoStatus').textContent.includes('写真を載せない'), 'no-photo status');
   assert(d.querySelector('#htmlScore').textContent === '5/35', 'no-photo choice must score the photo decision');
@@ -73,28 +76,39 @@ async function waitFrameReady(frame,label,searchMarker=''){
   assert(d.querySelector('#jsPhotoZoom').disabled, 'photo zoom must be disabled without a photo');
   assert(!preview.srcdoc.includes('id="profilePhoto"'), 'no-photo output must omit the profile photo');
   d.querySelector('#removeAdultPhoto').click();
-  await waitFor(()=>d.querySelector('#totalScore').textContent === '0', 'reset photo choice');
+  await waitFor(()=>d.querySelector('#htmlScore').textContent === '5/35' && d.querySelector('#jsScore').textContent === '6/20', 'sticky photo score after reset');
+  assert(d.querySelector('#totalScore').textContent === '11', 'earned photo points must remain after resetting the photo choice');
 
-  // Scoring help must actually open and close.
+  // Scoring help must actually open and close, and explain persistent scoring.
   d.querySelector('#adultHelp').click();
   await waitFor(()=>d.querySelector('#adultHelpDialog').open || d.querySelector('#adultHelpDialog').hasAttribute('open'), 'scoring dialog open');
   assert(d.querySelector('#adultHelp').getAttribute('aria-expanded') === 'true', 'help button state did not update');
+  assert(d.querySelector('#adultHelpDialog').textContent.includes('元の値へ戻しても点数は残ります'), 'persistent score rule missing from help');
   d.querySelector('#adultHelpDialog [data-close]').click();
   await waitFor(()=>!d.querySelector('#adultHelpDialog').open && !d.querySelector('#adultHelpDialog').hasAttribute('open'), 'scoring dialog close');
 
-  // HTML input must update both score and generated preview.
+  // HTML input must update both score and generated preview. Placeholder examples must never fill missing favorites.
   setInput(d.querySelector('#profileName'),'BROWSER TEST');
   setInput(d.querySelector('#profileTagline'),'CUSTOM MODE TEST');
   setInput(d.querySelector('#profileIntro'),'ブラウザで初期化とプレビュー更新を確認するテストです。');
   setInput(d.querySelector('#favorite1'),'HTML');
+  await waitFor(()=>preview.srcdoc.includes('<span>HTML</span>'), 'one favorite preview');
+  assert((preview.srcdoc.match(/class="favorite"/g)||[]).length === 1, 'one favorite must render exactly one card');
+  assert(!preview.srcdoc.includes('<span>ゲーム</span>') && !preview.srcdoc.includes('<span>音楽</span>') && !preview.srcdoc.includes('<span>つくること</span>'), 'partial favorites must not be auto-filled');
   setInput(d.querySelector('#favorite2'),'CSS');
   setInput(d.querySelector('#favorite3'),'JavaScript');
-  setInput(d.querySelector('#extraTitle'),'MORE TEST');
+  setInput(d.querySelector('#extraTitle'),'DETAIL TEST');
   setInput(d.querySelector('#extraText'),'もっと見る機能のテスト本文です。');
-  await waitFor(()=>Number(d.querySelector('#htmlScore').textContent.split('/')[0]) >= 30, 'HTML score update');
+  await waitFor(()=>d.querySelector('#htmlScore').textContent === '35/35', 'HTML score update');
   await waitFor(()=>preview.srcdoc.includes('BROWSER TEST'), 'text in generated preview');
+  assert(!preview.srcdoc.includes('<p class="section-label">MORE</p>'), 'generated preview must not show the MORE label');
 
-  // CSS controls must score only while they differ from defaults.
+  // Once HTML points are earned, clearing a field must not subtract them.
+  setInput(d.querySelector('#profileName'),'');
+  await waitFor(()=>preview.srcdoc.includes('<h1>YOUR NAME</h1>'), 'cleared name preview');
+  assert(d.querySelector('#htmlScore').textContent === '35/35', 'clearing an earned HTML field must not subtract points');
+  setInput(d.querySelector('#profileName'),'BROWSER TEST');
+
   d.querySelector('.adult-steps [data-step="1"]').click();
   await waitFor(()=>!d.querySelector('.adult-panel[data-panel="1"]').hidden, 'CSS panel');
 
@@ -108,15 +122,26 @@ async function waitFrameReady(frame,label,searchMarker=''){
   assert(preview.srcdoc.includes('.layout-split .hero{align-items:flex-start;text-align:left}'), 'left layout CSS missing');
   d.querySelector('#adultLayouts [data-layout="center"]').click();
 
+  // A CSS setting earns points on its first non-default value; returning to default keeps the score.
   setInput(d.querySelector('#headingSize'),'72');
   await waitFor(()=>preview.srcdoc.includes('font-size:72px'), 'heading size in preview');
   const scoreWithHeadingChange=Number(d.querySelector('#cssScore').textContent.split('/')[0]);
   setInput(d.querySelector('#headingSize'),'58');
   await waitFor(()=>preview.srcdoc.includes('font-size:58px'), 'heading reset in preview');
-  assert(Number(d.querySelector('#cssScore').textContent.split('/')[0]) === scoreWithHeadingChange-4, 'resetting a CSS value to default must remove its points');
+  assert(Number(d.querySelector('#cssScore').textContent.split('/')[0]) === scoreWithHeadingChange, 'resetting an earned CSS value must keep its points');
   setInput(d.querySelector('#headingSize'),'72');
 
-  // Change every CSS scoring target away from its default; CSS must reach 45/45.
+  // Visual color pickers must work with the mouse and stay synchronized with numeric RGB fields.
+  assert(d.querySelectorAll('input[type="color"]').length === 3, 'three visual color pickers are required');
+  setInput(d.querySelector('#backgroundPicker'),'#112233');
+  await waitFor(()=>d.querySelector('#backgroundR').value === '17' && d.querySelector('#backgroundG').value === '34' && d.querySelector('#backgroundB').value === '51', 'color picker to RGB sync');
+  await waitFor(()=>preview.srcdoc.includes('rgb(17, 34, 51)'), 'color picker in preview');
+  setInput(d.querySelector('#backgroundPicker'),'#f5f1ea');
+  await waitFor(()=>d.querySelector('#backgroundR').value === '245' && d.querySelector('#backgroundG').value === '241' && d.querySelector('#backgroundB').value === '234', 'restore background picker default');
+  const cssAfterPickerReset=Number(d.querySelector('#cssScore').textContent.split('/')[0]);
+  assert(cssAfterPickerReset >= scoreWithHeadingChange + 2, 'color picker points must remain after returning to the default color');
+
+  // Change every CSS scoring target at least once; CSS must reach 45/45.
   setInput(d.querySelector('#fontFamily'),'serif','change');
   setInput(d.querySelector('#pageWidth'),'520');
   await waitFor(()=>preview.srcdoc.includes('width:min(520px'), 'minimum page width in preview');
@@ -131,12 +156,13 @@ async function waitFrameReady(frame,label,searchMarker=''){
   setInput(d.querySelector('#borderWidth'),'3');
   setInput(d.querySelector('#shadowSize'),'13');
   setInput(d.querySelector('#backgroundR'),'210');
+  await waitFor(()=>d.querySelector('#backgroundPicker').value.toLowerCase() === '#d2f1ea', 'RGB to color picker sync');
   setInput(d.querySelector('#accentR'),'38');
   setInput(d.querySelector('#textR'),'35');
-  await waitFor(()=>d.querySelector('#cssScore').textContent === '45/45', 'all CSS defaults changed');
+  await waitFor(()=>d.querySelector('#cssScore').textContent === '45/45', 'all CSS controls tried');
   await waitFor(()=>preview.srcdoc.includes('rgb(210, 241, 234)'), 'RGB in preview');
 
-  // PC file selection must be converted and applied to both previews.
+  // PC file selection must be converted and applied to both previews without changing already-earned totals.
   d.querySelector('.adult-steps [data-step="0"]').click();
   const png64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2mGQAAAAASUVORK5CYII=';
   const bytes = Uint8Array.from(atob(png64), c => c.charCodeAt(0));
@@ -149,7 +175,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>d.querySelector('#adultPhotoPreview img'), 'PC photo preview');
   assert(d.querySelector('#adultPhotoStatus').textContent.includes('反映'), 'PC photo status missing');
   await waitFor(()=>preview.srcdoc.includes('data:image/jpeg;base64,'), 'PC photo in generated preview');
-  await waitFor(()=>d.querySelector('#htmlScore').textContent === '35/35', 'all HTML defaults changed');
+  assert(d.querySelector('#htmlScore').textContent === '35/35', 'HTML full score must remain');
 
   // JS feature selection must affect generated output and reach full JS score when prerequisites exist.
   d.querySelector('.adult-steps [data-step="2"]').click();
@@ -158,7 +184,15 @@ async function waitFrameReady(frame,label,searchMarker=''){
   }
   await waitFor(()=>d.querySelector('#jsScore').textContent === '20/20', 'JavaScript score');
   await waitFor(()=>preview.srcdoc.includes('id="revealButton"') && preview.srcdoc.includes('id="rouletteButton"') && preview.srcdoc.includes('id="photoZoom"'), 'JavaScript features in preview');
-  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'all defaults changed must score 100');
+  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'all scoring targets tried must score 100');
+
+  // Turning a feature back OFF removes it from output, but must not remove earned points.
+  const revealToggle=d.querySelector('#jsReveal');
+  revealToggle.checked=false; revealToggle.dispatchEvent(event('change'));
+  await waitFor(()=>!preview.srcdoc.includes('id="revealButton"'), 'reveal feature off in preview');
+  assert(d.querySelector('#jsScore').textContent === '20/20' && d.querySelector('#totalScore').textContent === '100', 'turning an earned JS feature off must keep its points');
+  revealToggle.checked=true; revealToggle.dispatchEvent(event('change'));
+  await waitFor(()=>preview.srcdoc.includes('id="revealButton"'), 'reveal feature restored');
 
   // The generated standalone HTML itself must keep working when opened in a normal browser.
   const runner=document.createElement('iframe');runner.id='generatedRunner';runner.style.display='none';document.body.append(runner);runner.srcdoc=preview.srcdoc;
@@ -168,12 +202,14 @@ async function waitFrameReady(frame,label,searchMarker=''){
   rouletteButton.click();await waitFor(()=>rouletteResult.textContent.includes('2回目'), 'roulette second click');
   assert(rouletteResult.textContent !== firstRoll, 'roulette should visibly advance on every click');
   const revealButton=rd.querySelector('#revealButton'),extraPanel=rd.querySelector('#extraPanel');revealButton.click();assert(!extraPanel.hidden,'standalone reveal must open');revealButton.click();assert(extraPanel.hidden,'standalone reveal must close');
+  assert(!rd.body.textContent.includes('MORE'), 'standalone generated HTML must not show a MORE label');
   runner.remove();
 
-  // Remove the local photo, then exercise the full prefixed QR photo round trip.
+  // Remove the local photo, then exercise the full prefixed QR photo round trip. Scores stay at 100.
   d.querySelector('.adult-steps [data-step="0"]').click();
   d.querySelector('#removeAdultPhoto').click();
   await waitFor(()=>!d.querySelector('#adultPhotoPreview img'), 'photo removal');
+  assert(d.querySelector('#totalScore').textContent === '100', 'removing a completed photo choice must keep earned points');
   d.querySelector('#adultPhonePhoto').click();
   await waitFor(()=>d.querySelector('#adultQrDialog').open, 'QR dialog open');
   let link = d.querySelector('#adultQrLink');
@@ -188,10 +224,10 @@ async function waitFrameReady(frame,label,searchMarker=''){
   await waitFor(()=>d.querySelector('#adultPhotoPreview img'), 'QR photo applied', 11000);
   assert(d.querySelector('#adultPhotoStatus').textContent.includes('反映'), 'QR photo status missing');
   await waitFor(()=>preview.srcdoc.includes('data:image/png;base64,'), 'QR photo in generated preview');
-  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'QR photo restore must return full score');
+  assert(d.querySelector('#totalScore').textContent === '100', 'QR photo round trip must preserve full score');
   await waitFor(()=>!d.querySelector('#adultQrDialog').open, 'photo QR dialog auto close', 5000);
   d.querySelector('#adultNoPhoto').click();
-  await waitFor(()=>d.querySelector('#totalScore').textContent === '100', 'explicit no-photo path must also allow full score');
+  assert(d.querySelector('#totalScore').textContent === '100', 'explicit no-photo path must preserve full score');
   assert(!preview.srcdoc.includes('id="profilePhoto"'), 'full-score no-photo output must omit photo');
 
   // Completed HTML share must also use the prefixed public path.
@@ -203,7 +239,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   d.querySelector('#adultQrDialog [data-close]').click();
   await waitFor(()=>!d.querySelector('#adultQrDialog').open, 'share QR dialog close');
 
-  // Old/corrupt localStorage must never prevent startup. Reload with deliberately bad types/ranges.
+  // Old/corrupt localStorage must never prevent startup. Valid historic earned keys survive normalization.
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     name:123, tagline:null, intro:{bad:true}, favorites:[1,null,{}], extraTitle:[], extraText:false,
     layout:'broken', fontFamily:'broken', pageWidth:'not-a-number', headingSize:9999, bodySize:-50,
@@ -220,6 +256,7 @@ async function waitFrameReady(frame,label,searchMarker=''){
   assert(Number(d.querySelector('#headingSize').value) === 96, 'numeric maximum was not clamped');
   assert(Number(d.querySelector('#bodySize').value) === 12, 'numeric minimum was not clamped');
   assert(!d.querySelector('#adultPhotoPreview img'), 'invalid saved photo was not discarded');
+  assert(d.querySelector('#cssScore').textContent.startsWith('8/'), 'valid saved and migrated CSS achievements were not preserved');
   assert(d.querySelector('#scoreTips').children.length > 0, 'scoring failed after stale state');
 
   out.textContent = 'PASS';
@@ -262,11 +299,11 @@ def main() -> None:
             "--disable-gpu",
             "--disable-dev-shm-usage",
             "--disable-background-networking",
-            "--virtual-time-budget=26000",
+            "--virtual-time-budget=28000",
             "--dump-dom",
             url,
         ]
-        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=50)
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=55)
         if proc.stdout:
             print(proc.stdout)
         if proc.stderr:
@@ -275,7 +312,7 @@ def main() -> None:
             raise RuntimeError(f"browser exited with status {proc.returncode}")
         if 'data-result="PASS"' not in proc.stdout:
             raise RuntimeError("custom mode browser regression failed")
-        print("OK: custom mode runtime, HTML/CSS/JS preview, score help, local/QR photos, share QR, stale storage")
+        print("OK: custom mode runtime, persistent scoring, preview, color picker, local/QR photos, share QR, stale storage")
     finally:
         httpd.shutdown()
         httpd.server_close()
