@@ -25,7 +25,24 @@
 
   init();
 
-  function init(){restoreControls();bind();setupPreviewSizing();renderAll();checkTransferServer();}
+  function init(){ensureColorPickers();restoreControls();bind();setupPreviewSizing();renderAll();checkTransferServer();}
+
+  function ensureColorPickers(){
+    const labels={background:'背景',accent:'アクセント',text:'文字'};
+    ['background','accent','text'].forEach(group=>{
+      if($('#'+group+'Picker'))return;
+      const head=$(`.rgb-card[data-rgb-group="${group}"] .rgb-card-head`);
+      if(!head)return;
+      const label=document.createElement('label');
+      label.className='visual-color-picker';
+      label.style.cssText='display:flex;align-items:center;gap:7px;font-size:.72rem;font-weight:900;white-space:nowrap;cursor:pointer';
+      label.textContent='色を選ぶ';
+      const picker=document.createElement('input');
+      picker.id=group+'Picker';picker.type='color';picker.setAttribute('aria-label',labels[group]+'色をマウスで選ぶ');
+      picker.style.cssText='width:46px;height:34px;padding:2px;border:2px solid #28333b;border-radius:7px;background:#fff;cursor:pointer';
+      label.append(picker);head.append(label);
+    });
+  }
 
   function normalizeState(raw){
     const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
@@ -66,9 +83,13 @@
       if(range)range.addEventListener('input',()=>{setNumeric(key,range.value,input);input.value=state[key];});
     });
 
-    ['background','accent','text'].forEach(group=>['R','G','B'].forEach(channel=>{
-      const input=$("#"+group+channel);input.addEventListener('input',()=>{const k=channel.toLowerCase(),v=clampNumber(input.value,0,255);state[group][k]=v;input.value=v;touch(group);changed();});
-    }));
+    ['background','accent','text'].forEach(group=>{
+      ['R','G','B'].forEach(channel=>{
+        const input=$("#"+group+channel);input.addEventListener('input',()=>{const k=channel.toLowerCase(),v=clampNumber(input.value,0,255);state[group][k]=v;input.value=v;touch(group);changed();});
+      });
+      const picker=$("#"+group+'Picker');
+      picker.addEventListener('input',()=>{const value=hexToRgb(picker.value);state[group]=value;['R','G','B'].forEach(channel=>$("#"+group+channel).value=value[channel.toLowerCase()]);touch(group);changed();});
+    });
 
     ['jsReveal','jsRoulette','jsPhotoZoom'].forEach(id=>$("#"+id).addEventListener('change',()=>{state[id]=$("#"+id).checked;changed();}));
 
@@ -92,7 +113,7 @@
     $$('#adultLayouts [data-layout]').forEach(b=>{const yes=b.dataset.layout===state.layout;b.classList.toggle('selected',yes);b.setAttribute('aria-pressed',String(yes));});
     $('#fontFamily').value=state.fontFamily;
     numericKeys.forEach(key=>{const input=$("#"+key),range=$(`[data-range-for="${key}"]`);input.value=state[key];if(range)range.value=state[key];});
-    ['background','accent','text'].forEach(group=>['R','G','B'].forEach(channel=>$("#"+group+channel).value=state[group][channel.toLowerCase()]));
+    ['background','accent','text'].forEach(group=>{['R','G','B'].forEach(channel=>$("#"+group+channel).value=state[group][channel.toLowerCase()]);$("#"+group+'Picker').value=rgbHex(state[group]);});
     ['jsReveal','jsRoulette','jsPhotoZoom'].forEach(id=>$("#"+id).checked=Boolean(state[id]));
   }
 
@@ -105,7 +126,7 @@
   function chooseNoPhoto(){stopPhotoPolling();state.photo='';state.photoMode='none';state.jsPhotoZoom=false;$('#adultPhotoInput').value='';$('#jsPhotoZoom').checked=false;changed();showToast('写真を載せない設定を反映しました');}
   function resetPhotoChoice(){stopPhotoPolling();state.photo='';state.photoMode='unset';state.jsPhotoZoom=false;$('#adultPhotoInput').value='';$('#jsPhotoZoom').checked=false;changed();showToast('写真の設定を未設定に戻しました');}
   function syncPhotoZoomAvailability(){const input=$('#jsPhotoZoom'),feature=$('#jsPhotoZoomFeature'),description=$('#jsPhotoZoomDescription'),hasPhoto=hasProfilePhoto();input.disabled=!hasPhoto;if(!hasPhoto&&state.jsPhotoZoom){state.jsPhotoZoom=false;input.checked=false;}feature.setAttribute('aria-disabled',String(!hasPhoto));description.textContent=state.photoMode==='none'?'「写真を載せない」設定なので、この6点は対象外として達成扱いです。':hasPhoto?'プロフィール写真をクリックすると、大きく表示して閉じられます。':'プロフィール写真を設定すると、この機能を選べます。';}
-  function renderRgb(){['background','accent','text'].forEach(group=>{const value=rgb(state[group]);$("#"+group+'Swatch').style.background=value;$("#"+group+'Code').textContent=value;});}
+  function renderRgb(){['background','accent','text'].forEach(group=>{const value=rgb(state[group]);$("#"+group+'Swatch').style.background=value;$("#"+group+'Code').textContent=value;$("#"+group+'Picker').value=rgbHex(state[group]);});}
   function renderCssCode(){$('#cssCodePreview').textContent=`:root {\n  --page-width: ${state.pageWidth}px;\n  --heading-size: ${state.headingSize}px;\n  --body-size: ${state.bodySize}px;\n  --photo-size: ${state.photoSize}px;\n  --page-padding: ${state.pagePadding}px;\n  --gap: ${state.sectionGap}px;\n  --radius: ${state.cornerRadius}px;\n  --border-width: ${state.borderWidth}px;\n  --shadow-size: ${state.shadowSize}px;\n  --background: ${rgb(state.background)};\n  --accent: ${rgb(state.accent)};\n  --text: ${rgb(state.text)};\n}`;}
   function renderPreview(){$('#adultPreview').srcdoc=buildHtml(true);}
   const DESKTOP_PREVIEW_WIDTH=1240,DESKTOP_PREVIEW_HEIGHT=920,MOBILE_PREVIEW_WIDTH=390,MOBILE_PREVIEW_HEIGHT=760;
@@ -150,7 +171,8 @@
 
   function buildHtml(previewMode=false){
     const name=esc(state.name.trim()||'YOUR NAME'),tagline=esc(state.tagline.trim()||'好きなことを、Webで形にする。'),intro=esc(state.intro.trim()||'ここに自己紹介を書いてみよう。CSSの数字を変えると、このページの見た目がすぐに変わります。');
-    const favs=state.favorites.filter(x=>x.trim()).map(esc);while(favs.length<3)favs.push(['ゲーム','音楽','つくること'][favs.length]);
+    const favs=state.favorites.filter(x=>x.trim()).map(esc);
+    const favoritesSection=favs.length?`<section class="favorites">${favs.map((f,i)=>`<div class="favorite"><b>LIKE ${String(i+1).padStart(2,'0')}</b><span>${f}</span></div>`).join('')}</section>`:'';
     const extraTitle=esc(state.extraTitle.trim()||'もっと知る'),extraText=esc(state.extraText.trim()||'ここに追加プロフィールを書いてみよう。');
     const font=state.fontFamily==='serif'?`"Yu Mincho","Hiragino Mincho ProN",serif`:state.fontFamily==='mono'?`ui-monospace,SFMono-Regular,Consolas,monospace`:`"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif`;
     const hasPhoto=hasProfilePhoto(),noPhoto=state.photoMode==='none';
@@ -158,16 +180,16 @@
     const photoWrap=noPhoto?'':state.jsPhotoZoom&&hasPhoto?`<button class="photo-button" id="photoZoom" type="button" aria-label="写真を拡大">${photo}</button>`:`<div class="photo-wrap">${photo}</div>`;
     const featureButtons=[state.jsReveal?`<button type="button" id="revealButton">もっと見る</button>`:'',state.jsRoulette?`<button type="button" id="rouletteButton">好きなものガチャ</button>`:''].filter(Boolean).join('');
     const reveal=state.jsReveal?`<section class="extra" id="extraPanel" hidden><p class="section-label">MORE</p><h2>${extraTitle}</h2><p>${extraText}</p></section>`:`<section class="extra"><p class="section-label">MORE</p><h2>${extraTitle}</h2><p>${extraText}</p></section>`;
-    const roulette=state.jsRoulette?`<p class="roulette-result" id="rouletteResult">ボタンを押すと1つ選ぶよ</p>`:'';
+    const roulette=state.jsRoulette?`<p class="roulette-result" id="rouletteResult">${favs.length?'ボタンを押すと1つ選ぶよ':'好きなものを入力するとガチャできます'}</p>`:'';
     const script=[];
     if(state.jsReveal)script.push(`document.getElementById('revealButton').addEventListener('click',()=>{const p=document.getElementById('extraPanel');p.hidden=!p.hidden;document.getElementById('revealButton').textContent=p.hidden?'もっと見る':'とじる';});`);
-    if(state.jsRoulette)script.push(`const favs=${safeJson(state.favorites.filter(x=>x.trim()).length?state.favorites.filter(x=>x.trim()):['ゲーム','音楽','つくること'])};let rouletteLast=-1,rouletteCount=0;document.getElementById('rouletteButton').addEventListener('click',()=>{let choices=favs.map((_,i)=>i).filter(i=>i!==rouletteLast);if(!choices.length)choices=[0];rouletteLast=choices[Math.floor(Math.random()*choices.length)];rouletteCount+=1;document.getElementById('rouletteResult').textContent='ガチャ '+rouletteCount+'回目：'+favs[rouletteLast];});`);
+    if(state.jsRoulette){const rouletteFavorites=state.favorites.filter(x=>x.trim());script.push(`const favs=${safeJson(rouletteFavorites)};let rouletteLast=-1,rouletteCount=0;document.getElementById('rouletteButton').addEventListener('click',()=>{rouletteCount+=1;if(!favs.length){document.getElementById('rouletteResult').textContent='好きなものを入力するとガチャできます';return;}let choices=favs.map((_,i)=>i).filter(i=>i!==rouletteLast);if(!choices.length)choices=[0];rouletteLast=choices[Math.floor(Math.random()*choices.length)];document.getElementById('rouletteResult').textContent='ガチャ '+rouletteCount+'回目：'+favs[rouletteLast];});`);}
     if(state.jsPhotoZoom&&hasPhoto)script.push(`const lb=document.getElementById('lightbox');document.getElementById('photoZoom').addEventListener('click',()=>lb.hidden=false);document.getElementById('lightboxClose').addEventListener('click',()=>lb.hidden=true);lb.addEventListener('click',e=>{if(e.target===lb)lb.hidden=true;});`);
     const lightbox=state.jsPhotoZoom&&hasPhoto?`<div class="lightbox" id="lightbox" hidden><button id="lightboxClose" type="button">×</button><img src="${escAttr(state.photo)}" alt="拡大したプロフィール写真"></div>`:'';
     const noScriptNotice=script.length?`<noscript><div class="script-warning"><strong>JavaScriptが無効なプレビューです。</strong><br>もっと見る・ガチャ・写真拡大を試すときは、このHTMLをWebブラウザで開いてください。</div></noscript>`:'';
     return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name} | profile</title><style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:32px 16px;background:${rgb(state.background)};color:${rgb(state.text)};font-family:${font};font-size:${state.bodySize}px;line-height:1.75}button{font:inherit}.profile{width:min(${state.pageWidth}px,calc(100% - 8px));margin:auto;padding:${state.pagePadding}px;background:rgba(255,255,255,.72);border:${state.borderWidth}px solid currentColor;border-radius:${state.cornerRadius}px;box-shadow:${state.shadowSize}px ${state.shadowSize}px 0 rgba(0,0,0,.13)}.hero{display:flex;flex-direction:column;gap:${state.sectionGap}px}.layout-split .hero{align-items:flex-start;text-align:left}.layout-center .hero{align-items:center;text-align:center}.layout-offset .hero{align-items:flex-end;text-align:right}.layout-center .hero-copy,.layout-offset .hero-copy{width:100%}.layout-center .intro{margin-left:auto;margin-right:auto}.layout-offset .intro{margin-left:auto}.layout-center .favorites,.layout-center .extra,.layout-center .roulette-result{text-align:center}.layout-center .interaction-bar{justify-content:center}.layout-offset .favorites,.layout-offset .extra,.layout-offset .roulette-result{text-align:right}.layout-offset .interaction-bar{justify-content:flex-end}.eyebrow,.section-label{margin:0 0 5px;color:${rgb(state.accent)};font-size:.72em;font-weight:900;letter-spacing:.14em}.hero h1{margin:0;font-size:${state.headingSize}px;line-height:1.03;letter-spacing:-.045em}.tagline{margin:12px 0 0;color:${rgb(state.accent)};font-weight:900}.intro{margin:${state.sectionGap}px 0 0;max-width:70ch}.photo-wrap,.photo-button{width:${state.photoSize}px;height:${state.photoSize}px;padding:0;border:${state.borderWidth}px solid currentColor;border-radius:${state.cornerRadius}px;overflow:hidden;background:#fff}.photo-button{cursor:zoom-in}.photo-wrap img,.photo-button img,.photo-placeholder{width:100%;height:100%;object-fit:cover}.photo-placeholder{display:grid;place-items:center;background:${rgb(state.accent)};color:#fff;font-size:calc(${state.photoSize}px * .36);font-weight:900}.favorites{display:grid;grid-template-columns:repeat(3,1fr);gap:${state.sectionGap}px;margin-top:${state.sectionGap}px}.favorite,.extra{padding:calc(${state.pagePadding}px * .42);border:${state.borderWidth}px solid currentColor;border-radius:${state.cornerRadius}px;background:rgba(255,255,255,.65)}.favorite b{display:block;color:${rgb(state.accent)};font-size:.72em;letter-spacing:.1em}.favorite span{display:block;margin-top:6px;font-weight:900}.extra{margin-top:${state.sectionGap}px}.extra h2{margin:0;font-size:1.35em}.extra p:last-child{margin-bottom:0}.interaction-bar{display:flex;flex-wrap:wrap;gap:10px;margin-top:${state.sectionGap}px}.interaction-bar button{padding:10px 15px;color:#fff;background:${rgb(state.accent)};border:${state.borderWidth}px solid currentColor;border-radius:${Math.min(state.cornerRadius,18)}px;font-weight:900;cursor:pointer}.roulette-result{margin:10px 0 0;padding:9px 12px;border-left:5px solid ${rgb(state.accent)};background:rgba(255,255,255,.65);font-weight:900}.lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:30px;background:#000c}.lightbox[hidden]{display:none}.lightbox img{max-width:min(800px,90vw);max-height:80vh;border:4px solid #fff}.lightbox button{position:absolute;right:25px;top:20px;width:48px;height:48px;color:#fff;background:#222;border:2px solid #fff;border-radius:50%;font-size:24px;cursor:pointer}@media(max-width:650px){body{padding:12px 6px}.profile{padding:max(18px,calc(${state.pagePadding}px * .65))}.photo-wrap,.photo-button{width:min(${state.photoSize}px,70vw);height:min(${state.photoSize}px,70vw)}.favorites{grid-template-columns:1fr}.hero h1{font-size:min(${state.headingSize}px,15vw)}}.script-warning{margin:${state.sectionGap}px auto 0;padding:12px;max-width:70ch;background:#fff4ca;border:2px solid #9a7921;color:#3d3426}
-</style></head><body><main class="profile layout-${state.layout}"><section class="hero"><div class="hero-copy"><p class="eyebrow">MY PROFILE</p><h1>${name}</h1><p class="tagline">${tagline}</p><p class="intro">${intro}</p></div>${photoWrap}</section><section class="favorites">${favs.slice(0,3).map((f,i)=>`<div class="favorite"><b>LIKE ${String(i+1).padStart(2,'0')}</b><span>${f}</span></div>`).join('')}</section>${featureButtons?`<div class="interaction-bar">${featureButtons}</div>`:''}${roulette}${reveal}</main>${lightbox}${noScriptNotice}${script.length?`<script>${script.join('')}<\/script>`:''}</body></html>`;
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:32px 16px;background:${rgb(state.background)};color:${rgb(state.text)};font-family:${font};font-size:${state.bodySize}px;line-height:1.75}button{font:inherit}.profile{width:min(${state.pageWidth}px,calc(100% - 8px));margin:auto;padding:${state.pagePadding}px;background:rgba(255,255,255,.72);border:${state.borderWidth}px solid currentColor;border-radius:${state.cornerRadius}px;box-shadow:${state.shadowSize}px ${state.shadowSize}px 0 rgba(0,0,0,.13)}.hero{display:flex;flex-direction:column;gap:${state.sectionGap}px}.layout-split .hero{align-items:flex-start;text-align:left}.layout-center .hero{align-items:center;text-align:center}.layout-offset .hero{align-items:flex-end;text-align:right}.layout-center .hero-copy,.layout-offset .hero-copy{width:100%}.layout-center .intro{margin-left:auto;margin-right:auto}.layout-offset .intro{margin-left:auto}.layout-center .favorites,.layout-center .extra,.layout-center .roulette-result{text-align:center}.layout-center .interaction-bar{justify-content:center}.layout-offset .favorites,.layout-offset .extra,.layout-offset .roulette-result{text-align:right}.layout-offset .interaction-bar{justify-content:flex-end}.eyebrow,.section-label{margin:0 0 5px;color:${rgb(state.accent)};font-size:.72em;font-weight:900;letter-spacing:.14em}.hero h1{margin:0;font-size:${state.headingSize}px;line-height:1.03;letter-spacing:-.045em}.tagline{margin:12px 0 0;color:${rgb(state.accent)};font-weight:900}.intro{margin:${state.sectionGap}px 0 0;max-width:70ch}.photo-wrap,.photo-button{width:${state.photoSize}px;height:${state.photoSize}px;padding:0;border:${state.borderWidth}px solid currentColor;border-radius:${state.cornerRadius}px;overflow:hidden;background:#fff}.photo-button{cursor:zoom-in}.photo-wrap img,.photo-button img,.photo-placeholder{width:100%;height:100%;object-fit:cover}.photo-placeholder{display:grid;place-items:center;background:${rgb(state.accent)};color:#fff;font-size:calc(${state.photoSize}px * .36);font-weight:900}.favorites{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:${state.sectionGap}px;margin-top:${state.sectionGap}px}.favorite,.extra{padding:calc(${state.pagePadding}px * .42);border:${state.borderWidth}px solid currentColor;border-radius:${state.cornerRadius}px;background:rgba(255,255,255,.65)}.favorite b{display:block;color:${rgb(state.accent)};font-size:.72em;letter-spacing:.1em}.favorite span{display:block;margin-top:6px;font-weight:900}.extra{margin-top:${state.sectionGap}px}.extra h2{margin:0;font-size:1.35em}.extra p:last-child{margin-bottom:0}.interaction-bar{display:flex;flex-wrap:wrap;gap:10px;margin-top:${state.sectionGap}px}.interaction-bar button{padding:10px 15px;color:#fff;background:${rgb(state.accent)};border:${state.borderWidth}px solid currentColor;border-radius:${Math.min(state.cornerRadius,18)}px;font-weight:900;cursor:pointer}.roulette-result{margin:10px 0 0;padding:9px 12px;border-left:5px solid ${rgb(state.accent)};background:rgba(255,255,255,.65);font-weight:900}.lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:30px;background:#000c}.lightbox[hidden]{display:none}.lightbox img{max-width:min(800px,90vw);max-height:80vh;border:4px solid #fff}.lightbox button{position:absolute;right:25px;top:20px;width:48px;height:48px;color:#fff;background:#222;border:2px solid #fff;border-radius:50%;font-size:24px;cursor:pointer}@media(max-width:650px){body{padding:12px 6px}.profile{padding:max(18px,calc(${state.pagePadding}px * .65))}.photo-wrap,.photo-button{width:min(${state.photoSize}px,70vw);height:min(${state.photoSize}px,70vw)}.favorites{grid-template-columns:1fr}.hero h1{font-size:min(${state.headingSize}px,15vw)}}.script-warning{margin:${state.sectionGap}px auto 0;padding:12px;max-width:70ch;background:#fff4ca;border:2px solid #9a7921;color:#3d3426}
+</style></head><body><main class="profile layout-${state.layout}"><section class="hero"><div class="hero-copy"><p class="eyebrow">MY PROFILE</p><h1>${name}</h1><p class="tagline">${tagline}</p><p class="intro">${intro}</p></div>${photoWrap}</section>${favoritesSection}${featureButtons?`<div class="interaction-bar">${featureButtons}</div>`:''}${roulette}${reveal}</main>${lightbox}${noScriptNotice}${script.length?`<script>${script.join('')}<\/script>`:''}</body></html>`;
   }
 
   async function handlePhotoUpload(event){const input=event.target,file=input.files?.[0];if(!file)return;if(!/^image\/(png|jpeg|webp)$/i.test(file.type)||file.size>12*1024*1024){showToast('12MB以下のPNG・JPEG・WebPを選んでください');input.value='';return;}try{const photo=await resizeProfileImage(file);applyProfilePhoto(photo,'PCから選んだ写真を反映しました');}catch(_){showToast('画像を読み込めませんでした');}finally{input.value='';}}
@@ -193,6 +215,8 @@
   async function ensureTransferServer(){if(transferInfo.enabled||await checkTransferServer())return true;showToast('QR機能用サーバーに接続できません。公開サーバーの設定を確認してください');return false;}
 
   function rgb(c){return `rgb(${clampNumber(c.r,0,255)}, ${clampNumber(c.g,0,255)}, ${clampNumber(c.b,0,255)})`;}
+  function rgbHex(c){return '#'+['r','g','b'].map(key=>clampNumber(c[key],0,255).toString(16).padStart(2,'0')).join('');}
+  function hexToRgb(value){const match=/^#([0-9a-f]{6})$/i.exec(String(value||''));if(!match)return {r:0,g:0,b:0};const hex=match[1];return {r:parseInt(hex.slice(0,2),16),g:parseInt(hex.slice(2,4),16),b:parseInt(hex.slice(4,6),16)};}
   function safeJson(value){return JSON.stringify(value).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');}
   function clampNumber(v,min,max){const n=Number(v);return Math.max(min,Math.min(max,Number.isFinite(n)?Math.round(n):min));}
   function isSafeImageDataUrl(value){return /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(String(value||''));}
