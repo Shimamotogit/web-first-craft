@@ -93,7 +93,7 @@
     $("#backspaceButton").addEventListener("click",()=>{state.name=[...state.name].slice(0,-1).join("");nameInput.value=state.name;changed(false);});
     $("#clearNameButton").addEventListener("click",()=>{state.name="";nameInput.value="";changed(false);});
     $("#backspacePhraseButton").addEventListener("click",()=>{state.customPhrase=[...state.customPhrase].slice(0,-1).join("");phraseInput.value=state.customPhrase;state.phrase=state.customPhrase||"よろしくね！";if(!state.customPhrase)$$("#phraseGrid button").forEach(b=>setSelected(b,b.dataset.value===state.phrase));changed(false);});
-    $("#clearPhraseButton").addEventListener("click",()=>{state.customPhrase="";state.phrase="よろしくね！";phraseInput.value="";$$("#phraseGrid button").forEach(b=>setSelected(b,b.dataset.value===state.phrase););changed(false);});
+    $("#clearPhraseButton").addEventListener("click",()=>{state.customPhrase="";state.phrase="よろしくね！";phraseInput.value="";$$("#phraseGrid button").forEach(b=>setSelected(b,b.dataset.value===state.phrase));changed(false);});
 
     $$('[data-kana-page]').forEach(button=>button.addEventListener("click",()=>{kanaPage=button.dataset.kanaPage||"basic";$$('[data-kana-page]').forEach(b=>b.classList.toggle("active",b===button));renderKana();}));
     $("#toggleKanaButton").addEventListener("click",()=>setKanaVisibility(!state.kanaVisible));
