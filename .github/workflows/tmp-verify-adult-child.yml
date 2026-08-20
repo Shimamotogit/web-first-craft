@@ -1,0 +1,35 @@
+name: Temporary adult child verification
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check JavaScript syntax
+        run: |
+          node --check web/js/adult.js
+          node --check web/js/child.js
+      - name: Check static structure
+        run: python3 tests/check_static.py
+      - name: Check Python syntax
+        run: python3 -m py_compile server/app.py tests/test_server.py tests/test_adult_browser.py tests/check_static.py
+      - name: Test server
+        run: python3 tests/test_server.py
+      - name: Test custom mode in Chrome
+        run: python3 tests/test_adult_browser.py
+      - name: Record pass
+        run: |
+          printf 'PASS %s\n' "$GITHUB_SHA" > .tmp-adult-child-verify-pass
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .tmp-adult-child-verify-pass
+          git commit -m "Record adult child verification pass"
+          git push
